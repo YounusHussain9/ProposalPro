@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const STATUS_OPTIONS = ["draft", "sent", "accepted", "declined"] as const;
 type Status = typeof STATUS_OPTIONS[number];
@@ -15,6 +15,25 @@ export default function StatusDropdown({ proposalId, initialStatus }: { proposal
   const [status, setStatus] = useState<Status>(initialStatus);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  function toggle() {
+    if (btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect();
+      setPos({ top: r.bottom + window.scrollY + 4, left: r.left + window.scrollX });
+    }
+    setOpen((o) => !o);
+  }
+
+  // Close on scroll/resize
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("resize", close);
+    return () => { window.removeEventListener("scroll", close, true); window.removeEventListener("resize", close); };
+  }, [open]);
 
   async function changeStatus(next: Status) {
     if (next === status) { setOpen(false); return; }
@@ -33,9 +52,10 @@ export default function StatusDropdown({ proposalId, initialStatus }: { proposal
   }
 
   return (
-    <div className="relative">
+    <>
       <button
-        onClick={() => setOpen((o) => !o)}
+        ref={btnRef}
+        onClick={toggle}
         disabled={loading}
         className={`text-xs px-2 py-1 rounded-full font-medium transition-opacity ${STATUS_STYLES[status]} ${loading ? "opacity-50" : "hover:opacity-80 cursor-pointer"}`}
       >
@@ -45,8 +65,11 @@ export default function StatusDropdown({ proposalId, initialStatus }: { proposal
 
       {open && (
         <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-full mt-1 z-20 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden min-w-[130px]">
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div
+            className="fixed z-50 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden min-w-[130px]"
+            style={{ top: pos.top, left: pos.left }}
+          >
             {STATUS_OPTIONS.map((opt) => (
               <button
                 key={opt}
@@ -61,6 +84,6 @@ export default function StatusDropdown({ proposalId, initialStatus }: { proposal
           </div>
         </>
       )}
-    </div>
+    </>
   );
 }
