@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase-browser";
@@ -7,6 +7,12 @@ import { createClient } from "@/lib/supabase-browser";
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => {
+      if (data.user) router.replace("/dashboard");
+    });
+  }, [router]);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);

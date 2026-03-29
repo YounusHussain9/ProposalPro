@@ -6,16 +6,23 @@ import type { Template } from "@/types";
 export default function TemplateCard({ template, userPlan }: { template: Template; userPlan?: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [cardError, setCardError] = useState("");
   const locked = template.isPremium && userPlan !== "pro";
 
   async function handleUse() {
+    setCardError("");
     if (locked) { router.push("/pricing"); return; }
     setLoading(true);
-    const res = await fetch("/api/proposals", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ templateId: template.id }) });
-    const data = await res.json();
-    if (data.proposal) router.push(`/editor/${data.proposal.id}`);
-    else if (data.requiresUpgrade) router.push("/pricing");
-    else { alert(data.error || "Error"); setLoading(false); }
+    try {
+      const res = await fetch("/api/proposals", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ templateId: template.id }) });
+      const data = await res.json();
+      if (data.proposal) router.push(`/editor/${data.proposal.id}`);
+      else if (data.requiresUpgrade) router.push("/pricing");
+      else { setCardError(data.error || "Something went wrong. Please try again."); setLoading(false); }
+    } catch {
+      setCardError("Network error. Please try again.");
+      setLoading(false);
+    }
   }
 
   return (
@@ -39,6 +46,9 @@ export default function TemplateCard({ template, userPlan }: { template: Templat
           </div>
         </div>
         <p className="text-sm text-gray-500 mb-4 line-clamp-2">{template.description}</p>
+        {cardError && (
+          <p className="text-xs text-red-600 bg-red-50 border border-red-100 px-3 py-2 rounded-lg mb-3">{cardError}</p>
+        )}
         <button onClick={handleUse} disabled={loading} className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 ${locked ? "bg-gray-100 text-gray-700 hover:bg-gray-200" : "bg-indigo-600 text-white hover:bg-indigo-700"}`}>
           {loading ? "Creating..." : locked ? "🔒 Upgrade to use" : "Use this template"}
         </button>

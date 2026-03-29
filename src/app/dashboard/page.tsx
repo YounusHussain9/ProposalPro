@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { getTemplateById } from "@/lib/templates";
 import DeleteButton from "@/components/DeleteButton";
 import ActivateProButton from "@/components/ActivateProButton";
+import StatusDropdown from "@/components/StatusDropdown";
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ upgrade?: string }> }) {
   const supabase = await createClient();
@@ -181,7 +182,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                       <p className="text-xs text-gray-500 mt-0.5">{tmpl?.category ?? ""} · {new Date(p.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${p.status === "draft" ? "bg-gray-100 text-gray-600" : p.status === "sent" ? "bg-blue-100 text-blue-700" : p.status === "accepted" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>{p.status}</span>
+                      <StatusDropdown proposalId={p.id} initialStatus={p.status as "draft" | "sent" | "accepted" | "declined"} />
                       <Link href={`/editor/${p.id}`} className="text-xs text-indigo-600 hover:text-indigo-700 font-medium border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-50 transition-colors">Edit</Link>
                       <DeleteButton proposalId={p.id} />
                     </div>

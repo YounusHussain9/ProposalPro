@@ -11,15 +11,19 @@ export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null);
   const [userPlan, setUserPlan] = useState<"free" | "pro" | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [selected, setSelected] = useState<"free" | "pro_monthly" | "pro_lifetime" | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) return;
-      setIsLoggedIn(true);
-      const { data: profile } = await supabase.from("profiles").select("plan").eq("id", data.user.id).single();
-      setUserPlan(profile?.plan ?? "free");
+      if (data.user) {
+        setIsLoggedIn(true);
+        const { data: profile } = await supabase.from("profiles").select("plan").eq("id", data.user.id).single();
+        setUserPlan(profile?.plan ?? "free");
+      }
+      setReady(true);
     });
   }, []);
 
@@ -76,78 +80,94 @@ export default function PricingPage() {
         )}
 
         <section className="max-w-4xl mx-auto px-4 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-            {/* Free */}
-            <div className={`bg-white border-2 rounded-2xl p-8 ${!isPro && isLoggedIn ? "border-indigo-200" : "border-gray-200"}`}>
-              {!isPro && isLoggedIn && (
-                <div className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full mb-3">Current plan</div>
-              )}
-              <h3 className="text-lg font-bold text-gray-900 mb-1">Free</h3>
-              <div className="text-4xl font-black text-gray-900 mb-1">$0</div>
-              <p className="text-gray-500 text-sm mb-6">Forever free</p>
-              <ul className="space-y-3 text-sm mb-8">
-                {["3 free templates", "3 PDF exports/month", "Rich text editor", "Dashboard access"].map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-gray-700"><svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>{f}</li>
-                ))}
-              </ul>
-              {isLoggedIn ? (
-                <Link href="/dashboard" className="block text-center py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors">
-                  Go to dashboard
-                </Link>
-              ) : (
-                <Link href="/auth/signup" className="block text-center py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors">
-                  Get started free
-                </Link>
-              )}
+          {!ready && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-white border-2 border-gray-100 rounded-2xl p-8 animate-pulse">
+                  <div className="h-4 w-16 bg-gray-100 rounded mb-4" />
+                  <div className="h-10 w-24 bg-gray-100 rounded mb-2" />
+                  <div className="h-3 w-20 bg-gray-100 rounded mb-6" />
+                  <div className="space-y-3 mb-8">{[1,2,3,4].map(j => <div key={j} className="h-3 bg-gray-100 rounded" />)}</div>
+                  <div className="h-11 bg-gray-100 rounded-xl" />
+                </div>
+              ))}
+            </div>
+          )}
+          {ready && <>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              {/* Free */}
+              <div
+                onClick={() => setSelected("free")}
+                className={`bg-white border-2 rounded-2xl p-8 cursor-pointer transition-all ${selected === "free" ? "border-indigo-500 ring-2 ring-indigo-200" : "border-gray-200 hover:border-gray-300"}`}
+              >
+                {!isPro && isLoggedIn && (
+                  <div className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full mb-3">Current plan</div>
+                )}
+                <h3 className="text-lg font-bold text-gray-900 mb-1">Free</h3>
+                <div className="text-4xl font-black text-gray-900 mb-1">$0</div>
+                <p className="text-gray-500 text-sm mb-6">Forever free</p>
+                <ul className="space-y-3 text-sm">
+                  {["3 free templates", "3 PDF exports/month", "Rich text editor", "Dashboard access"].map((f) => (
+                    <li key={f} className="flex items-center gap-2 text-gray-700"><svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>{f}</li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Pro Monthly */}
+              <div
+                onClick={() => setSelected("pro_monthly")}
+                className={`bg-indigo-600 border-2 rounded-2xl p-8 relative cursor-pointer transition-all ${selected === "pro_monthly" ? "border-white ring-2 ring-indigo-300" : "border-indigo-600 hover:border-indigo-400"}`}
+              >
+                {isPro ? (
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-white text-green-700 text-xs font-bold px-4 py-1.5 rounded-full border border-green-200">⭐ Your plan</div>
+                ) : (
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-white text-indigo-700 text-xs font-bold px-4 py-1.5 rounded-full border border-indigo-200">Most popular</div>
+                )}
+                <h3 className="text-lg font-bold text-white mb-1">Pro Monthly</h3>
+                <div className="text-4xl font-black text-white mb-1">$12<span className="text-lg font-normal text-indigo-200">/mo</span></div>
+                <p className="text-indigo-200 text-sm mb-6">Cancel anytime</p>
+                <ul className="space-y-3 text-sm">
+                  {["All 10+ templates", "Unlimited exports", "Priority support", "New templates monthly"].map((f) => (
+                    <li key={f} className="flex items-center gap-2 text-indigo-100"><svg className="w-4 h-4 text-white flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>{f}</li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Pro Lifetime */}
+              <div
+                onClick={() => setSelected("pro_lifetime")}
+                className={`bg-white border-2 rounded-2xl p-8 cursor-pointer transition-all ${selected === "pro_lifetime" ? "border-indigo-500 ring-2 ring-indigo-200" : "border-gray-200 hover:border-gray-300"}`}
+              >
+                <h3 className="text-lg font-bold text-gray-900 mb-1">Pro Lifetime</h3>
+                <div className="text-4xl font-black text-gray-900 mb-1">$29</div>
+                <p className="text-gray-500 text-sm mb-6">Pay once, use forever</p>
+                <ul className="space-y-3 text-sm">
+                  {["Everything in Pro Monthly", "Lifetime access", "All future templates", "No recurring fees"].map((f) => (
+                    <li key={f} className="flex items-center gap-2 text-gray-700"><svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>{f}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
 
-            {/* Pro Monthly */}
-            <div className="bg-indigo-600 border-2 border-indigo-600 rounded-2xl p-8 relative">
-              {isPro ? (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-white text-green-700 text-xs font-bold px-4 py-1.5 rounded-full border border-green-200">⭐ Your plan</div>
-              ) : (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-white text-indigo-700 text-xs font-bold px-4 py-1.5 rounded-full border border-indigo-200">Most popular</div>
-              )}
-              <h3 className="text-lg font-bold text-white mb-1">Pro Monthly</h3>
-              <div className="text-4xl font-black text-white mb-1">$12<span className="text-lg font-normal text-indigo-200">/mo</span></div>
-              <p className="text-indigo-200 text-sm mb-6">Cancel anytime</p>
-              <ul className="space-y-3 text-sm mb-8">
-                {["All 10+ templates", "Unlimited exports", "Priority support", "New templates monthly"].map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-indigo-100"><svg className="w-4 h-4 text-white flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>{f}</li>
-                ))}
-              </ul>
-              {isPro ? (
-                <div className="block w-full text-center py-3 bg-white/20 text-white rounded-xl font-semibold cursor-default">
-                  ✓ Active
-                </div>
-              ) : (
-                <button onClick={() => handleUpgrade("pro_monthly")} disabled={loading !== null} className="block w-full text-center py-3 bg-white text-indigo-700 rounded-xl font-semibold hover:bg-indigo-50 transition-colors disabled:opacity-50">
-                  {loading === "pro_monthly" ? "Redirecting..." : "Upgrade to Pro"}
+            {/* Single CTA below cards */}
+            <div className="flex justify-center mb-16">
+              {selected === "free" ? (
+                <Link href={isLoggedIn ? "/dashboard" : "/auth/signup"} className="px-10 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors">
+                  {isLoggedIn ? "Go to dashboard" : "Get started free"}
+                </Link>
+              ) : selected === "pro_monthly" || selected === "pro_lifetime" ? (
+                <button
+                  onClick={() => handleUpgrade(selected)}
+                  disabled={loading !== null}
+                  className="px-10 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                >
+                  {loading ? "Redirecting..." : selected === "pro_monthly" ? "Upgrade to Pro — $12/mo" : "Buy Lifetime Access — $29"}
                 </button>
+              ) : (
+                <p className="text-sm text-gray-400">Select a plan above to continue</p>
               )}
             </div>
-
-            {/* Pro Lifetime */}
-            <div className="bg-white border-2 border-gray-200 rounded-2xl p-8">
-              <h3 className="text-lg font-bold text-gray-900 mb-1">Pro Lifetime</h3>
-              <div className="text-4xl font-black text-gray-900 mb-1">$29</div>
-              <p className="text-gray-500 text-sm mb-6">Pay once, use forever</p>
-              <ul className="space-y-3 text-sm mb-8">
-                {["Everything in Pro Monthly", "Lifetime access", "All future templates", "No recurring fees"].map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-gray-700"><svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>{f}</li>
-                ))}
-              </ul>
-              {isPro ? (
-                <div className="block w-full text-center py-3 bg-gray-100 text-gray-500 rounded-xl font-semibold cursor-default">
-                  Already on Pro
-                </div>
-              ) : (
-                <button onClick={() => handleUpgrade("pro_lifetime")} disabled={loading !== null} className="block w-full text-center py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50">
-                  {loading === "pro_lifetime" ? "Redirecting..." : "Buy Lifetime Access"}
-                </button>
-              )}
-            </div>
-          </div>
+          </>}
 
           {/* FAQ */}
           <div className="max-w-2xl mx-auto">

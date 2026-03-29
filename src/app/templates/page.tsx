@@ -83,9 +83,20 @@ export default function TemplatesPage() {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-10">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Proposal Templates</h1>
-          <p className="text-gray-600">Choose a template to get started. Free templates included — no signup required.</p>
+        <div className="mb-10 flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Proposal Templates</h1>
+            <p className="text-gray-600">Choose a template to get started. Free templates included — no signup required.</p>
+          </div>
+          <button
+            onClick={() => setShowBuilder(true)}
+            className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold text-sm hover:bg-indigo-700 transition-colors flex-shrink-0"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Create your template
+          </button>
         </div>
 
         {/* My Templates */}
@@ -159,23 +170,6 @@ export default function TemplatesPage() {
           </div>
         </div>
 
-        {/* Create your own template card */}
-        <div className="mt-4">
-          <button
-            onClick={() => setShowBuilder(true)}
-            className="w-full sm:w-auto flex items-center gap-3 px-6 py-4 border-2 border-dashed border-indigo-300 rounded-2xl text-indigo-600 hover:bg-indigo-50 hover:border-indigo-400 transition-colors group"
-          >
-            <div className="w-10 h-10 rounded-xl bg-indigo-100 group-hover:bg-indigo-200 flex items-center justify-center transition-colors">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-            </div>
-            <div className="text-left">
-              <p className="font-semibold text-sm">Create your own template</p>
-              <p className="text-xs text-indigo-400">Build a custom template with your own fields</p>
-            </div>
-          </button>
-        </div>
       </main>
       <Footer />
 
