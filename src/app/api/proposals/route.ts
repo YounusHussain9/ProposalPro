@@ -31,6 +31,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => null);
     if (!body?.templateId) return NextResponse.json({ error: "templateId is required" }, { status: 400 });
 
+    // Ensure profile row exists (user may not have visited dashboard yet)
+    const svcEnsure = await createServiceClient();
+    await svcEnsure.from("profiles").upsert(
+      { id: user.id, email: user.email!, full_name: user.user_metadata?.full_name ?? null },
+      { onConflict: "id", ignoreDuplicates: true }
+    );
+
     // Handle custom templates
     if (typeof body.templateId === "string" && body.templateId.startsWith("custom_")) {
       const customTemplate = body.customTemplate;
