@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase-server";
 import { getTemplateById } from "@/lib/templates";
-import { notifyWhatsApp } from "@/lib/whatsapp";
+import { sendNotification } from "@/lib/email";
 
 export async function GET() {
   try {
@@ -109,7 +109,7 @@ export async function PATCH(request: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     // Notify owner when status changes
     if (status) {
-      await notifyWhatsApp(`📋 Proposal Status Changed\n\nUser: ${user.email}\nProposal: "${data.title}"\nNew Status: ${status.toUpperCase()}`);
+      await sendNotification("📋 Proposal Status Changed — ProposalPro", `User: ${user.email}\nProposal: "${data.title}"\nNew Status: ${status.toUpperCase()}`);
     }
     return NextResponse.json({ proposal: data });
   } catch (e) {

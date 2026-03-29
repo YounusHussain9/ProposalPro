@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { createServiceClient } from "@/lib/supabase-server";
-import { notifyWhatsApp } from "@/lib/whatsapp";
+import { sendNotification } from "@/lib/email";
 import Stripe from "stripe";
 
 export async function POST(request: NextRequest) {
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       await supabase.from("payments").update({ status: "paid" }).eq("stripe_session_id", session.id);
       await supabase.from("profiles").update({ plan: "pro", exports_limit: 999 }).eq("id", userId);
       const amount = session.amount_total ? `$${(session.amount_total / 100).toFixed(2)}` : "";
-      await notifyWhatsApp(`💰 New Purchase!\n\nPlan: ${session.metadata?.plan_id ?? "pro"}\nAmount: ${amount}\nSession: ${session.id}`);
+      await sendNotification("💰 New Purchase — ProposalPro", `Plan: ${session.metadata?.plan_id ?? "pro"}\nAmount: ${amount}\nSession: ${session.id}`);
     } catch (e) {
       console.error("Webhook DB update failed:", e);
       return NextResponse.json({ error: "DB update failed" }, { status: 500 });

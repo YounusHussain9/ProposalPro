@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase-server";
-import { notifyWhatsApp } from "@/lib/whatsapp";
+import { sendNotification } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       .update({ exports_used: (await svc.from("profiles").select("exports_used").eq("id", user.id).single().then(r => (r.data?.exports_used ?? 0) + 1)) })
       .eq("id", user.id);
 
-    await notifyWhatsApp(`📄 PDF Downloaded\n\nUser: ${user.email}\nProposal: "${proposalTitle}"`);
+    await sendNotification("📄 PDF Downloaded — ProposalPro", `User: ${user.email}\nProposal: "${proposalTitle}"`);
 
     return NextResponse.json({ success: true });
   } catch (e) {

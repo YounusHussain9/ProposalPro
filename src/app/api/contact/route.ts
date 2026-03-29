@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { notifyWhatsApp } from "@/lib/whatsapp";
+import { sendNotification } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,8 +8,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "name, email and message are required" }, { status: 400 });
     }
     const { name, email, subject, message } = body;
-    await notifyWhatsApp(
-      `📬 New Contact Message\n\nFrom: ${name} (${email})\nSubject: ${subject || "General enquiry"}\n\n${message}`
+    await sendNotification(
+      `📬 New Contact Message — ${subject || "General enquiry"}`,
+      `From: ${name} (${email})\nSubject: ${subject || "General enquiry"}\n\n${message}`
     );
     return NextResponse.json({ success: true });
   } catch (e) {
