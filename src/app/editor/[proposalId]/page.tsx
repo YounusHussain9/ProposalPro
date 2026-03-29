@@ -146,7 +146,7 @@ export default function EditorPage() {
           <button onClick={() => save()} disabled={saving} className="text-sm text-gray-600 border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors print:hidden">
             Save
           </button>
-          <PrintButton />
+          <PrintButton proposalTitle={title} />
         </div>
       </div>
 

@@ -40,6 +40,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-6">
             <Link href="/templates" className={`text-sm transition-colors ${isActive("/templates") ? "text-indigo-600 font-medium" : "text-gray-600 hover:text-gray-900"}`}>Templates</Link>
             <Link href="/pricing" className={`text-sm transition-colors ${isActive("/pricing") ? "text-indigo-600 font-medium" : "text-gray-600 hover:text-gray-900"}`}>Pricing</Link>
+            <Link href="/contact" className={`text-sm transition-colors ${isActive("/contact") ? "text-indigo-600 font-medium" : "text-gray-600 hover:text-gray-900"}`}>Contact</Link>
             {!ready ? (
               <div className="flex items-center gap-3">
                 <div className="h-4 w-14 bg-gray-100 rounded animate-pulse" />
@@ -66,6 +67,7 @@ export default function Navbar() {
           <div className="md:hidden py-4 border-t border-gray-100 space-y-3">
             <Link href="/templates" className="block text-sm text-gray-600 py-2">Templates</Link>
             <Link href="/pricing" className="block text-sm text-gray-600 py-2">Pricing</Link>
+            <Link href="/contact" className="block text-sm text-gray-600 py-2">Contact</Link>
             {!ready ? null : user ? (
               <>
                 <Link href="/dashboard" className="block text-sm text-gray-600 py-2">Dashboard</Link>
