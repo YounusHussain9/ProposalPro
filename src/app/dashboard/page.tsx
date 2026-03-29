@@ -14,10 +14,20 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const params = await searchParams;
   const upgradeSuccess = params.upgrade === "success";
 
-  // If returning from Stripe, verify and upgrade plan immediately (no webhook dependency)
+  // If returning from Stripe, verify payment and upgrade plan immediately
   if (upgradeSuccess) {
     try {
+      const { stripe } = await import("@/lib/stripe");
       const svc = await createServiceClient();
+
+      // Ensure profile row exists (in case trigger didn't fire)
+      await svc.from("profiles").upsert({
+        id: user.id,
+        email: user.email!,
+        full_name: user.user_metadata?.full_name ?? null,
+      }, { onConflict: "id", ignoreDuplicates: true });
+
+      // 1. Check DB for a pending payment record
       const { data: payment } = await svc
         .from("payments")
         .select("*")
@@ -26,27 +36,55 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         .limit(1)
         .single();
 
+      let verified = false;
+
       if (payment) {
-        if (payment.status === "pending") {
-          const { stripe } = await import("@/lib/stripe");
+        if (payment.status === "paid") {
+          verified = true;
+        } else if (payment.stripe_session_id) {
           const session = await stripe.checkout.sessions.retrieve(payment.stripe_session_id);
           if (session.payment_status === "paid") {
             await svc.from("payments").update({ status: "paid" }).eq("id", payment.id);
-            await svc.from("profiles").update({ plan: "pro", exports_limit: 999 }).eq("id", user.id);
+            verified = true;
           }
-        } else if (payment.status === "paid") {
-          // Payment already marked paid — ensure profile is pro
-          await svc.from("profiles").update({ plan: "pro", exports_limit: 999 }).eq("id", user.id);
         }
+      }
+
+      // 2. Fallback: search Stripe directly by customer ID
+      if (!verified) {
+        const { data: profile } = await svc.from("profiles").select("stripe_customer_id").eq("id", user.id).single();
+        if (profile?.stripe_customer_id) {
+          const sessions = await stripe.checkout.sessions.list({
+            customer: profile.stripe_customer_id,
+            limit: 5,
+          });
+          const paid = sessions.data.find(s => s.payment_status === "paid");
+          if (paid) {
+            // Record the payment and upgrade
+            await svc.from("payments").upsert({
+              user_id: user.id,
+              stripe_session_id: paid.id,
+              amount: paid.amount_total ?? 0,
+              plan: (paid.metadata?.plan_id as string) ?? "pro_lifetime",
+              status: "paid",
+            }, { onConflict: "stripe_session_id", ignoreDuplicates: true });
+            verified = true;
+          }
+        }
+      }
+
+      if (verified) {
+        await svc.from("profiles").update({ plan: "pro", exports_limit: 999 }).eq("id", user.id);
       }
     } catch (e) {
       console.error("Payment verification error:", e);
     }
   }
 
+  const svcFinal = await createServiceClient();
   const [{ data: profile }, { data: proposals }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", user.id).single(),
-    supabase.from("proposals").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }),
+    svcFinal.from("profiles").select("*").eq("id", user.id).single(),
+    svcFinal.from("proposals").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }),
   ]);
 
   return (
