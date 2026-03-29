@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 import { getTemplateById } from "@/lib/templates";
 import PrintButton from "@/components/PrintButton";
+import SignaturePad from "@/components/SignaturePad";
 import type { Proposal, Template } from "@/types";
 
 export default function EditorPage() {
@@ -23,6 +24,7 @@ export default function EditorPage() {
   const [signerName, setSignerName] = useState("");
   const [signerTitle, setSignerTitle] = useState("");
   const [clientName, setClientName] = useState("");
+  const [signatureImage, setSignatureImage] = useState(""); // drawn signature base64
 
   useEffect(() => {
     const supabase = createClient();
@@ -36,6 +38,7 @@ export default function EditorPage() {
       // Pre-fill signature fields from existing content
       setSignerName(c.yourName || c.freelancerName || c.agencyName || c.consultantName || c.vendor || c.planner || c.party1 || "");
       setClientName(c.clientName || c.preparedFor || c.party2 || "");
+      if (c.__signatureImage) setSignatureImage(c.__signatureImage);
       setLoading(false);
     });
   }, [proposalId, router]);
@@ -179,6 +182,16 @@ export default function EditorPage() {
                       placeholder="Client full name"
                     />
                   </div>
+                  <SignaturePad
+                    label="Your digital signature"
+                    value={signatureImage}
+                    onChange={(dataUrl) => {
+                      setSignatureImage(dataUrl);
+                      const updated = { ...content, __signatureImage: dataUrl };
+                      setContent(updated);
+                      save(updated);
+                    }}
+                  />
                 </div>
               </div>
             </div>
@@ -243,7 +256,12 @@ export default function EditorPage() {
               {/* Signature block */}
               <div className="mt-10 pt-8 border-t-2 border-gray-200 grid grid-cols-2 gap-10 print:mt-16">
                 <div>
-                  <div className="border-b-2 border-gray-900 mb-3 pb-10" />
+                  {signatureImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={signatureImage} alt="Signature" className="h-16 mb-1 object-contain object-left" />
+                  ) : (
+                    <div className="border-b-2 border-gray-900 mb-3 pb-10" />
+                  )}
                   <p className="text-sm font-bold text-gray-900">{displaySignerName || "Authorized Signature"}</p>
                   {signerTitle && <p className="text-xs text-gray-500 mt-0.5">{signerTitle}</p>}
                   <p className="text-xs text-gray-400 mt-1">Date: _______________</p>
