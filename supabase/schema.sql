@@ -60,3 +60,17 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+CREATE TABLE IF NOT EXISTS public.custom_templates (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  title       TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  icon        TEXT NOT NULL DEFAULT '📄',
+  color       TEXT NOT NULL DEFAULT 'from-gray-500 to-gray-700',
+  fields      JSONB NOT NULL DEFAULT '[]',
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE public.custom_templates ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can manage own custom templates" ON public.custom_templates;
+CREATE POLICY "Users can manage own custom templates" ON public.custom_templates FOR ALL USING (auth.uid() = user_id);

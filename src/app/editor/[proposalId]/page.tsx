@@ -6,13 +6,14 @@ import { createClient } from "@/lib/supabase-browser";
 import { getTemplateById } from "@/lib/templates";
 import PrintButton from "@/components/PrintButton";
 import SignaturePad from "@/components/SignaturePad";
-import type { Proposal, Template } from "@/types";
+import type { Proposal, Template, TemplateField } from "@/types";
 
 export default function EditorPage() {
   const { proposalId } = useParams<{ proposalId: string }>();
   const router = useRouter();
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const [template, setTemplate] = useState<Template | null>(null);
+  const [customFields, setCustomFields] = useState<TemplateField[]>([]);
   const [content, setContent] = useState<Record<string, string>>({});
   const [title, setTitle] = useState("");
   const [saving, setSaving] = useState(false);
@@ -26,32 +27,53 @@ export default function EditorPage() {
   const [clientName, setClientName] = useState("");
   const [signatureImage, setSignatureImage] = useState("");
 
-  // Custom fields — stored in content as __custom_{id}: JSON {label, value, type}
-  const [customFields, setCustomFields] = useState<{ id: string; label: string; value: string; type: "text" | "textarea" }[]>([]);
-  const [newFieldLabel, setNewFieldLabel] = useState("");
-  const [newFieldType, setNewFieldType] = useState<"text" | "textarea">("text");
-
   useEffect(() => {
     const supabase = createClient();
-    supabase.from("proposals").select("*").eq("id", proposalId).single().then(({ data, error }) => {
+    supabase.from("proposals").select("*").eq("id", proposalId).single().then(async ({ data, error }) => {
       if (error || !data) { router.push("/dashboard"); return; }
       setProposal(data as Proposal);
       const c = data.content as Record<string, string>;
       setContent(c);
       setTitle(data.title);
-      setTemplate(getTemplateById(data.template_id) ?? null);
+
+      const templateId: string = data.template_id;
+
+      if (templateId.startsWith("custom_")) {
+        // Fetch the custom template fields from the API
+        const customId = templateId.replace("custom_", "");
+        try {
+          const res = await fetch("/api/custom-templates");
+          if (res.ok) {
+            const json = await res.json();
+            const found = (json.templates ?? []).find((t: { id: string }) => t.id === customId);
+            if (found) {
+              // Build a synthetic Template object so the rest of the editor works unchanged
+              const synth: Template = {
+                id: templateId,
+                title: found.title,
+                description: found.description ?? "",
+                category: "Custom",
+                isPremium: false,
+                color: found.color,
+                icon: found.icon,
+                fields: found.fields as TemplateField[],
+                defaultContent: {},
+              };
+              setTemplate(synth);
+              setCustomFields(found.fields as TemplateField[]);
+            }
+          }
+        } catch {
+          // ignore, fall through
+        }
+      } else {
+        setTemplate(getTemplateById(templateId) ?? null);
+      }
+
       // Pre-fill signature fields from existing content
       setSignerName(c.yourName || c.freelancerName || c.agencyName || c.consultantName || c.vendor || c.planner || c.party1 || "");
       setClientName(c.clientName || c.preparedFor || c.party2 || "");
       if (c.__signatureImage) setSignatureImage(c.__signatureImage);
-      // Restore custom fields
-      const saved = Object.entries(c)
-        .filter(([k]) => k.startsWith("__custom_"))
-        .map(([k, v]) => {
-          try { return { id: k.replace("__custom_", ""), ...JSON.parse(v) }; } catch { return null; }
-        })
-        .filter(Boolean) as { id: string; label: string; value: string; type: "text" | "textarea" }[];
-      if (saved.length) setCustomFields(saved);
       setLoading(false);
     });
   }, [proposalId, router]);
@@ -84,37 +106,6 @@ export default function EditorPage() {
     setSaved(false);
   }
 
-  function addCustomField() {
-    const label = newFieldLabel.trim();
-    if (!label) return;
-    const id = Date.now().toString();
-    const field = { id, label, value: "", type: newFieldType };
-    const updated = [...customFields, field];
-    setCustomFields(updated);
-    setNewFieldLabel("");
-    const newContent = { ...content, [`__custom_${id}`]: JSON.stringify({ label, value: "", type: newFieldType }) };
-    setContent(newContent);
-    save(newContent);
-  }
-
-  function updateCustomField(id: string, value: string) {
-    const updated = customFields.map(f => f.id === id ? { ...f, value } : f);
-    setCustomFields(updated);
-    const field = updated.find(f => f.id === id)!;
-    const newContent = { ...content, [`__custom_${id}`]: JSON.stringify({ label: field.label, value, type: field.type }) };
-    setContent(newContent);
-    setSaved(false);
-  }
-
-  function removeCustomField(id: string) {
-    const updated = customFields.filter(f => f.id !== id);
-    setCustomFields(updated);
-    const newContent = { ...content };
-    delete newContent[`__custom_${id}`];
-    setContent(newContent);
-    save(newContent);
-  }
-
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
@@ -125,6 +116,9 @@ export default function EditorPage() {
   );
 
   if (!template || !proposal) return null;
+
+  // Use custom fields if this is a custom template, else use built-in template fields
+  const activeFields: TemplateField[] = template.id.startsWith("custom_") ? customFields : template.fields;
 
   const displaySignerName = signerName || content.yourName || content.freelancerName || content.agencyName || content.consultantName || content.vendor || content.planner || content.party1 || "";
   const displayClientName = clientName || content.clientName || content.preparedFor || content.party2 || "";
@@ -164,7 +158,7 @@ export default function EditorPage() {
               <span className="text-lg">{template.icon}</span> Edit Fields
             </h2>
             <div className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
-              {template.fields.map((field) => (
+              {activeFields.map((field) => (
                 <div key={field.key}>
                   <label className="block text-xs font-medium text-gray-600 mb-1">{field.label}</label>
                   {field.type === "textarea" ? (
@@ -188,70 +182,6 @@ export default function EditorPage() {
                   )}
                 </div>
               ))}
-
-              {/* Custom fields section */}
-              <div className="pt-4 border-t border-gray-100">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Custom Fields</p>
-
-                {/* Existing custom fields */}
-                {customFields.map((field) => (
-                  <div key={field.id} className="mb-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="text-xs font-medium text-gray-600">{field.label}</label>
-                      <button type="button" onClick={() => removeCustomField(field.id)} className="text-xs text-red-400 hover:text-red-600">✕ Remove</button>
-                    </div>
-                    {field.type === "textarea" ? (
-                      <textarea
-                        value={field.value}
-                        onChange={(e) => updateCustomField(field.id, e.target.value)}
-                        onBlur={() => save()}
-                        rows={3}
-                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-                        placeholder={`Enter ${field.label.toLowerCase()}...`}
-                      />
-                    ) : (
-                      <input
-                        type="text"
-                        value={field.value}
-                        onChange={(e) => updateCustomField(field.id, e.target.value)}
-                        onBlur={() => save()}
-                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        placeholder={`Enter ${field.label.toLowerCase()}...`}
-                      />
-                    )}
-                  </div>
-                ))}
-
-                {/* Add new field */}
-                <div className="bg-gray-50 rounded-xl p-3 space-y-2">
-                  <input
-                    type="text"
-                    value={newFieldLabel}
-                    onChange={(e) => setNewFieldLabel(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && addCustomField()}
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-                    placeholder="Field name (e.g. Payment Terms)"
-                  />
-                  <div className="flex gap-2">
-                    <select
-                      value={newFieldType}
-                      onChange={(e) => setNewFieldType(e.target.value as "text" | "textarea")}
-                      className="flex-1 px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-                    >
-                      <option value="text">Single line</option>
-                      <option value="textarea">Multi-line</option>
-                    </select>
-                    <button
-                      type="button"
-                      onClick={addCustomField}
-                      disabled={!newFieldLabel.trim()}
-                      className="flex-1 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-40"
-                    >
-                      + Add field
-                    </button>
-                  </div>
-                </div>
-              </div>
 
               {/* Signature section */}
               <div className="pt-4 border-t border-gray-100">
@@ -339,34 +269,17 @@ export default function EditorPage() {
                 </div>
               )}
 
-              {/* Dynamic sections */}
-              {template.fields.filter(f => f.type === "textarea" && content[f.key]).map((field) => (
+              {/* Dynamic sections — textarea fields */}
+              {activeFields.filter(f => f.type === "textarea" && content[f.key]).map((field) => (
                 <div key={field.key}>
                   <h2 className="text-lg font-bold text-gray-900 mb-3 pb-2 border-b-2 border-indigo-100">{field.label}</h2>
                   <div className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">{content[field.key]}</div>
                 </div>
               ))}
 
-              {/* Custom fields in preview */}
-              {customFields.filter(f => f.value).map((field) => (
-                <div key={field.id}>
-                  {field.type === "textarea" ? (
-                    <>
-                      <h2 className="text-lg font-bold text-gray-900 mb-3 pb-2 border-b-2 border-indigo-100">{field.label}</h2>
-                      <div className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">{field.value}</div>
-                    </>
-                  ) : (
-                    <div className="flex gap-4 py-2 border-b border-gray-50">
-                      <p className="text-xs text-gray-500 uppercase tracking-wide font-medium w-32 flex-shrink-0 pt-0.5">{field.label}</p>
-                      <p className="font-semibold text-gray-900 text-sm">{field.value}</p>
-                    </div>
-                  )}
-                </div>
-              ))}
-
               {/* Non-textarea fields grid */}
               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-                {template.fields.filter(f =>
+                {activeFields.filter(f =>
                   f.type !== "textarea" &&
                   !["clientName","yourName","projectTitle","projectName","preparedFor","preparedBy","freelancerName","agencyName","consultantName","vendor","planner","party1","party2","date","proposalDate","quoteDate","startDate","eventDate","validUntil"].includes(f.key) &&
                   content[f.key]

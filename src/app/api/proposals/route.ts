@@ -31,6 +31,25 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => null);
     if (!body?.templateId) return NextResponse.json({ error: "templateId is required" }, { status: 400 });
 
+    // Handle custom templates
+    if (typeof body.templateId === "string" && body.templateId.startsWith("custom_")) {
+      const customTemplate = body.customTemplate;
+      if (!customTemplate) return NextResponse.json({ error: "customTemplate data is required" }, { status: 400 });
+      const svc = await createServiceClient();
+      const { data: proposal, error } = await svc
+        .from("proposals")
+        .insert({
+          user_id: user.id,
+          template_id: body.templateId,
+          title: `${customTemplate.title} — ${new Date().toLocaleDateString()}`,
+          content: {},
+        })
+        .select()
+        .single();
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ proposal });
+    }
+
     const template = getTemplateById(body.templateId);
     if (!template) return NextResponse.json({ error: "Template not found" }, { status: 404 });
 
