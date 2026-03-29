@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase-server";
+import { createClient, createServiceClient } from "@/lib/supabase-server";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { getTemplateById } from "@/lib/templates";
@@ -11,13 +11,43 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/auth/login");
 
+  const params = await searchParams;
+  const upgradeSuccess = params.upgrade === "success";
+
+  // If returning from Stripe, verify and upgrade plan immediately (no webhook dependency)
+  if (upgradeSuccess) {
+    try {
+      const svc = await createServiceClient();
+      const { data: payment } = await svc
+        .from("payments")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (payment) {
+        if (payment.status === "pending") {
+          const { stripe } = await import("@/lib/stripe");
+          const session = await stripe.checkout.sessions.retrieve(payment.stripe_session_id);
+          if (session.payment_status === "paid") {
+            await svc.from("payments").update({ status: "paid" }).eq("id", payment.id);
+            await svc.from("profiles").update({ plan: "pro", exports_limit: 999 }).eq("id", user.id);
+          }
+        } else if (payment.status === "paid") {
+          // Payment already marked paid — ensure profile is pro
+          await svc.from("profiles").update({ plan: "pro", exports_limit: 999 }).eq("id", user.id);
+        }
+      }
+    } catch (e) {
+      console.error("Payment verification error:", e);
+    }
+  }
+
   const [{ data: profile }, { data: proposals }] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user.id).single(),
     supabase.from("proposals").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }),
   ]);
-
-  const params = await searchParams;
-  const upgradeSuccess = params.upgrade === "success";
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
