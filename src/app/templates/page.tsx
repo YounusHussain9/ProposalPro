@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import TemplateCard from "@/components/TemplateCard";
 import CustomTemplateBuilder from "@/components/CustomTemplateBuilder";
 import { TEMPLATES } from "@/lib/templates";
+import { createClient } from "@/lib/supabase-browser";
 
 interface CustomTemplate {
   id: string;
@@ -23,6 +24,7 @@ export default function TemplatesPage() {
   const [showBuilder, setShowBuilder] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [creatingId, setCreatingId] = useState<string | null>(null);
+  const [userPlan, setUserPlan] = useState<string | null>(null);
 
   const fetchCustomTemplates = useCallback(async () => {
     try {
@@ -38,6 +40,16 @@ export default function TemplatesPage() {
 
   useEffect(() => {
     fetchCustomTemplates();
+    // Fetch user plan so TemplateCard knows if user is pro
+    createClient().auth.getUser().then(async ({ data }) => {
+      if (!data.user) return;
+      const { data: profile } = await createClient()
+        .from("profiles")
+        .select("plan")
+        .eq("id", data.user.id)
+        .single();
+      setUserPlan(profile?.plan ?? "free");
+    });
   }, [fetchCustomTemplates]);
 
   async function handleDeleteCustom(id: string) {
@@ -152,7 +164,7 @@ export default function TemplatesPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {TEMPLATES.filter((t) => !t.isPremium).map((template) => (
-              <TemplateCard key={template.id} template={template} />
+              <TemplateCard key={template.id} template={template} userPlan={userPlan ?? undefined} />
             ))}
           </div>
         </div>
@@ -165,7 +177,7 @@ export default function TemplatesPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {TEMPLATES.filter((t) => t.isPremium).map((template) => (
-              <TemplateCard key={template.id} template={template} />
+              <TemplateCard key={template.id} template={template} userPlan={userPlan ?? undefined} />
             ))}
           </div>
         </div>
