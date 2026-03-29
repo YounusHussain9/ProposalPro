@@ -1,4 +1,7 @@
+"use client";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase-browser";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -12,6 +15,12 @@ const features = [
 ];
 
 export default function LandingPage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => setIsLoggedIn(!!data.user));
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Navbar />
@@ -35,11 +44,17 @@ export default function LandingPage() {
               Browse templates
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
             </Link>
-            <Link href="/auth/signup" className="inline-flex items-center justify-center gap-2 bg-white text-gray-700 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-50 border border-gray-200 transition-colors">
-              Sign up free
-            </Link>
+            {isLoggedIn ? (
+              <Link href="/dashboard" className="inline-flex items-center justify-center gap-2 bg-white text-gray-700 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-50 border border-gray-200 transition-colors">
+                Go to dashboard →
+              </Link>
+            ) : (
+              <Link href="/auth/signup" className="inline-flex items-center justify-center gap-2 bg-white text-gray-700 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-50 border border-gray-200 transition-colors">
+                Sign up free
+              </Link>
+            )}
           </div>
-          <p className="mt-6 text-sm text-gray-500">No credit card required · 3 free proposals</p>
+          {!isLoggedIn && <p className="mt-6 text-sm text-gray-500">No credit card required · 3 free proposals</p>}
         </div>
       </section>
 

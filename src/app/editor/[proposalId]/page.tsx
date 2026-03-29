@@ -17,28 +17,50 @@ export default function EditorPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Signature fields stored separately so they're always editable
+  const [signerName, setSignerName] = useState("");
+  const [signerTitle, setSignerTitle] = useState("");
+  const [clientName, setClientName] = useState("");
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.from("proposals").select("*").eq("id", proposalId).single().then(({ data }) => {
-      if (!data) { router.push("/dashboard"); return; }
+    supabase.from("proposals").select("*").eq("id", proposalId).single().then(({ data, error }) => {
+      if (error || !data) { router.push("/dashboard"); return; }
       setProposal(data as Proposal);
-      setContent(data.content as Record<string, string>);
+      const c = data.content as Record<string, string>;
+      setContent(c);
       setTitle(data.title);
       setTemplate(getTemplateById(data.template_id) ?? null);
+      // Pre-fill signature fields from existing content
+      setSignerName(c.yourName || c.freelancerName || c.agencyName || c.consultantName || c.vendor || c.planner || c.party1 || "");
+      setClientName(c.clientName || c.preparedFor || c.party2 || "");
       setLoading(false);
     });
   }, [proposalId, router]);
 
   const save = useCallback(async (overrideContent?: Record<string, string>) => {
+    setError("");
     setSaving(true);
-    await fetch("/api/proposals", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: proposalId, title, content: overrideContent ?? content }),
-    });
-    setSaving(false); setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    try {
+      const res = await fetch("/api/proposals", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: proposalId, title, content: overrideContent ?? content }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "Failed to save");
+      } else {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      }
+    } catch {
+      setError("Network error — changes not saved");
+    } finally {
+      setSaving(false);
+    }
   }, [proposalId, title, content]);
 
   function updateField(key: string, value: string) {
@@ -57,17 +79,26 @@ export default function EditorPage() {
 
   if (!template || !proposal) return null;
 
+  const displaySignerName = signerName || content.yourName || content.freelancerName || content.agencyName || content.consultantName || content.vendor || content.planner || content.party1 || "";
+  const displayClientName = clientName || content.clientName || content.preparedFor || content.party2 || "";
+
   return (
     <div className="min-h-screen bg-gray-100 print:bg-white">
-      {/* Top bar - hidden on print */}
+      {/* Top bar */}
       <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center justify-between print:hidden sticky top-0 z-40">
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="text-gray-500 hover:text-gray-700 transition-colors">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
           </Link>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} onBlur={() => save()} className="text-sm font-semibold text-gray-900 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-indigo-500 focus:outline-none px-1 py-0.5 min-w-[200px]" />
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            onBlur={() => save()}
+            className="text-sm font-semibold text-gray-900 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-indigo-500 focus:outline-none px-1 py-0.5 min-w-[200px]"
+          />
         </div>
         <div className="flex items-center gap-3">
+          {error && <span className="text-xs text-red-600">{error}</span>}
           <span className={`text-xs transition-all ${saved ? "text-green-600" : saving ? "text-gray-400" : "text-transparent"}`}>
             {saved ? "✓ Saved" : saving ? "Saving..." : "."}
           </span>
@@ -85,7 +116,7 @@ export default function EditorPage() {
             <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <span className="text-lg">{template.icon}</span> Edit Fields
             </h2>
-            <div className="space-y-4 max-h-[calc(100vh-180px)] overflow-y-auto pr-1">
+            <div className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
               {template.fields.map((field) => (
                 <div key={field.key}>
                   <label className="block text-xs font-medium text-gray-600 mb-1">{field.label}</label>
@@ -110,6 +141,46 @@ export default function EditorPage() {
                   )}
                 </div>
               ))}
+
+              {/* Signature section */}
+              <div className="pt-4 border-t border-gray-100">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Signature Block</p>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Your name (signer)</label>
+                    <input
+                      type="text"
+                      value={signerName}
+                      onChange={(e) => setSignerName(e.target.value)}
+                      onBlur={() => save()}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      placeholder="Your full name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Your title / role</label>
+                    <input
+                      type="text"
+                      value={signerTitle}
+                      onChange={(e) => setSignerTitle(e.target.value)}
+                      onBlur={() => save()}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      placeholder="e.g. CEO, Freelancer"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Client name</label>
+                    <input
+                      type="text"
+                      value={clientName}
+                      onChange={(e) => setClientName(e.target.value)}
+                      onBlur={() => save()}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      placeholder="Client full name"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -123,7 +194,7 @@ export default function EditorPage() {
                 <p className="text-white/70 text-sm font-medium uppercase tracking-widest mb-2">{template.category}</p>
                 <h1 className="text-3xl font-black mb-1">{content.projectTitle || content.projectName || content.engagement || content.eventName || title}</h1>
                 <p className="text-white/80 text-sm">
-                  {content.yourName || content.preparedBy || content.freelancerName || content.agencyName || content.consultantName || content.vendor || content.planner || ""}
+                  {displaySignerName}
                   {(content.proposalDate || content.date || content.quoteDate) && ` · ${content.proposalDate || content.date || content.quoteDate}`}
                 </p>
               </div>
@@ -132,11 +203,11 @@ export default function EditorPage() {
             {/* Document body */}
             <div className="p-8 print:p-10 space-y-6">
               {/* To / From */}
-              {(content.clientName || content.preparedFor || content.party2) && (
+              {(displayClientName || displaySignerName) && (
                 <div className="flex flex-col sm:flex-row gap-6 pb-6 border-b border-gray-100">
                   <div className="flex-1">
                     <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Prepared for</p>
-                    <p className="font-semibold text-gray-900">{content.clientName || content.preparedFor || content.party2}</p>
+                    <p className="font-semibold text-gray-900">{displayClientName || "—"}</p>
                   </div>
                   {(content.validUntil || content.validFor || content.duration) && (
                     <div>
@@ -155,9 +226,13 @@ export default function EditorPage() {
                 </div>
               ))}
 
-              {/* Non-textarea fields at bottom */}
+              {/* Non-textarea fields grid */}
               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-                {template.fields.filter(f => f.type !== "textarea" && !["clientName","yourName","projectTitle","projectName","preparedFor","preparedBy","freelancerName","agencyName","consultantName","vendor","planner","party1","party2","date","proposalDate","quoteDate","startDate","eventDate","validUntil"].includes(f.key) && content[f.key]).map((field) => (
+                {template.fields.filter(f =>
+                  f.type !== "textarea" &&
+                  !["clientName","yourName","projectTitle","projectName","preparedFor","preparedBy","freelancerName","agencyName","consultantName","vendor","planner","party1","party2","date","proposalDate","quoteDate","startDate","eventDate","validUntil"].includes(f.key) &&
+                  content[f.key]
+                ).map((field) => (
                   <div key={field.key}>
                     <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">{field.label}</p>
                     <p className="font-semibold text-gray-900 text-sm">{content[field.key]}</p>
@@ -166,16 +241,17 @@ export default function EditorPage() {
               </div>
 
               {/* Signature block */}
-              <div className="mt-10 pt-8 border-t border-gray-200 grid grid-cols-2 gap-10 print:mt-16">
+              <div className="mt-10 pt-8 border-t-2 border-gray-200 grid grid-cols-2 gap-10 print:mt-16">
                 <div>
-                  <div className="border-b-2 border-gray-900 mb-2 pb-8" />
-                  <p className="text-sm font-semibold text-gray-900">{content.yourName || content.freelancerName || content.agencyName || content.consultantName || content.vendor || content.planner || content.party1 || "Authorized Signature"}</p>
-                  <p className="text-xs text-gray-500">{content.yourEmail || content.contact || ""}</p>
+                  <div className="border-b-2 border-gray-900 mb-3 pb-10" />
+                  <p className="text-sm font-bold text-gray-900">{displaySignerName || "Authorized Signature"}</p>
+                  {signerTitle && <p className="text-xs text-gray-500 mt-0.5">{signerTitle}</p>}
+                  <p className="text-xs text-gray-400 mt-1">Date: _______________</p>
                 </div>
                 <div>
-                  <div className="border-b-2 border-gray-300 mb-2 pb-8" />
-                  <p className="text-sm font-semibold text-gray-700">{content.clientName || content.preparedFor || content.party2 || "Client Signature"}</p>
-                  <p className="text-xs text-gray-500">Date: _______________</p>
+                  <div className="border-b-2 border-gray-400 mb-3 pb-10" />
+                  <p className="text-sm font-bold text-gray-700">{displayClientName || "Client Signature"}</p>
+                  <p className="text-xs text-gray-400 mt-1">Date: _______________</p>
                 </div>
               </div>
             </div>
