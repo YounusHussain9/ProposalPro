@@ -239,77 +239,138 @@ export default function EditorPage() {
         {/* Preview panel */}
         <div className="lg:col-span-2 print:col-span-full">
           <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm print:shadow-none print:rounded-none print:border-0">
+
             {/* Document header */}
             <div className={`bg-gradient-to-r ${template.color} p-8 print:p-10`}>
-              <div className="text-white">
-                <p className="text-white/70 text-sm font-medium uppercase tracking-widest mb-2">{template.category}</p>
-                <h1 className="text-3xl font-black mb-1">{content.projectTitle || content.projectName || content.engagement || content.eventName || title}</h1>
-                <p className="text-white/80 text-sm">
-                  {displaySignerName}
-                  {(content.proposalDate || content.date || content.quoteDate) && ` · ${content.proposalDate || content.date || content.quoteDate}`}
-                </p>
+              <div className="flex items-start justify-between">
+                <div className="text-white flex-1">
+                  <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-3">{template.category}</p>
+                  <h1 className="text-3xl font-black mb-2 leading-tight">{content.projectTitle || content.projectName || content.engagement || content.eventName || title}</h1>
+                  <p className="text-white/80 text-sm">
+                    {displaySignerName}
+                    {(content.proposalDate || content.date || content.quoteDate) && ` · ${content.proposalDate || content.date || content.quoteDate}`}
+                  </p>
+                </div>
+                {/* Branding logo */}
+                <div className="ml-6 flex-shrink-0 bg-white/20 rounded-2xl p-3 backdrop-blur-sm">
+                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
+                    <svg className="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <p className="text-white/80 text-xs font-bold mt-1 text-center">ProposalPro</p>
+                </div>
               </div>
             </div>
 
-            {/* Document body */}
-            <div className="p-8 print:p-10 space-y-6">
-              {/* To / From */}
-              {(displayClientName || displaySignerName) && (
-                <div className="flex flex-col sm:flex-row gap-6 pb-6 border-b border-gray-100">
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Prepared for</p>
-                    <p className="font-semibold text-gray-900">{displayClientName || "—"}</p>
+            {/* To / From info bar */}
+            {(displayClientName || displaySignerName || content.validUntil || content.validFor) && (
+              <div className="bg-gray-50 border-b border-gray-100 px-8 py-4 flex flex-wrap gap-6">
+                {displaySignerName && (
+                  <div>
+                    <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-0.5">From</p>
+                    <p className="font-semibold text-gray-900 text-sm">{displaySignerName}</p>
+                    {signerTitle && <p className="text-xs text-gray-500">{signerTitle}</p>}
                   </div>
-                  {(content.validUntil || content.validFor || content.duration) && (
-                    <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Valid until</p>
-                      <p className="font-semibold text-gray-900">{content.validUntil || content.validFor || content.duration}</p>
-                    </div>
-                  )}
-                </div>
-              )}
+                )}
+                {displayClientName && (
+                  <div>
+                    <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-0.5">Prepared for</p>
+                    <p className="font-semibold text-gray-900 text-sm">{displayClientName}</p>
+                  </div>
+                )}
+                {(content.validUntil || content.validFor) && (
+                  <div>
+                    <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-0.5">Valid until</p>
+                    <p className="font-semibold text-gray-900 text-sm">{content.validUntil || content.validFor}</p>
+                  </div>
+                )}
+                {(content.proposalDate || content.date || content.quoteDate) && (
+                  <div>
+                    <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-0.5">Date</p>
+                    <p className="font-semibold text-gray-900 text-sm">{content.proposalDate || content.date || content.quoteDate}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Document body */}
+            <div className="p-8 print:p-10 space-y-7">
 
               {/* Dynamic sections — textarea fields */}
-              {activeFields.filter(f => f.type === "textarea" && content[f.key]).map((field) => (
+              {activeFields.filter(f => f.type === "textarea" && content[f.key]).map((field, i) => (
                 <div key={field.key}>
-                  <h2 className="text-lg font-bold text-gray-900 mb-3 pb-2 border-b-2 border-indigo-100">{field.label}</h2>
-                  <div className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">{content[field.key]}</div>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
+                      <span className="text-indigo-600 font-bold text-xs">{i + 1}</span>
+                    </div>
+                    <h2 className="text-base font-bold text-gray-900">{field.label}</h2>
+                  </div>
+                  <div className="ml-10 text-gray-600 text-sm leading-relaxed whitespace-pre-line bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
+                    {content[field.key]}
+                  </div>
                 </div>
               ))}
 
-              {/* Non-textarea fields grid */}
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-                {activeFields.filter(f =>
-                  f.type !== "textarea" &&
-                  !["clientName","yourName","projectTitle","projectName","preparedFor","preparedBy","freelancerName","agencyName","consultantName","vendor","planner","party1","party2","date","proposalDate","quoteDate","startDate","eventDate","validUntil"].includes(f.key) &&
-                  content[f.key]
-                ).map((field) => (
-                  <div key={field.key}>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">{field.label}</p>
-                    <p className="font-semibold text-gray-900 text-sm">{content[field.key]}</p>
+              {/* Non-textarea fields — styled detail cards */}
+              {activeFields.filter(f =>
+                f.type !== "textarea" &&
+                !["clientName","yourName","projectTitle","projectName","preparedFor","preparedBy","freelancerName","agencyName","consultantName","vendor","planner","party1","party2","date","proposalDate","quoteDate","startDate","eventDate","validUntil"].includes(f.key) &&
+                content[f.key]
+              ).length > 0 && (
+                <div>
+                  <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Project Details</h2>
+                  <div className="grid grid-cols-2 gap-3">
+                    {activeFields.filter(f =>
+                      f.type !== "textarea" &&
+                      !["clientName","yourName","projectTitle","projectName","preparedFor","preparedBy","freelancerName","agencyName","consultantName","vendor","planner","party1","party2","date","proposalDate","quoteDate","startDate","eventDate","validUntil"].includes(f.key) &&
+                      content[f.key]
+                    ).map((field) => (
+                      <div key={field.key} className="bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
+                        <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">{field.label}</p>
+                        <p className="font-semibold text-gray-900 text-sm">{content[field.key]}</p>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
 
               {/* Signature block */}
-              <div className="mt-10 pt-8 border-t-2 border-gray-200 grid grid-cols-2 gap-10 print:mt-16">
-                <div>
-                  {signatureImage ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={signatureImage} alt="Signature" className="h-16 mb-1 object-contain object-left" />
-                  ) : (
-                    <div className="border-b-2 border-gray-900 mb-3 pb-10" />
-                  )}
-                  <p className="text-sm font-bold text-gray-900">{displaySignerName || "Authorized Signature"}</p>
-                  {signerTitle && <p className="text-xs text-gray-500 mt-0.5">{signerTitle}</p>}
-                  <p className="text-xs text-gray-400 mt-1">Date: _______________</p>
-                </div>
-                <div>
-                  <div className="border-b-2 border-gray-400 mb-3 pb-10" />
-                  <p className="text-sm font-bold text-gray-700">{displayClientName || "Client Signature"}</p>
-                  <p className="text-xs text-gray-400 mt-1">Date: _______________</p>
+              <div className="mt-8 pt-8 border-t-2 border-gray-100">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Agreed & Signed</p>
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                    <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-4">Authorized by</p>
+                    {signatureImage ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={signatureImage} alt="Signature" className="h-14 mb-3 object-contain object-left" />
+                    ) : (
+                      <div className="border-b-2 border-gray-300 mb-4 pb-8" />
+                    )}
+                    <p className="text-sm font-bold text-gray-900">{displaySignerName || "Authorized Signature"}</p>
+                    {signerTitle && <p className="text-xs text-gray-500 mt-0.5">{signerTitle}</p>}
+                    <p className="text-xs text-gray-400 mt-2">Date: _______________</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                    <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-4">Client acceptance</p>
+                    <div className="border-b-2 border-gray-300 mb-4 pb-8" />
+                    <p className="text-sm font-bold text-gray-700">{displayClientName || "Client Signature"}</p>
+                    <p className="text-xs text-gray-400 mt-2">Date: _______________</p>
+                  </div>
                 </div>
               </div>
+
+              {/* Footer branding */}
+              <div className="pt-6 border-t border-gray-100 flex items-center justify-between">
+                <p className="text-xs text-gray-300">Generated with ProposalPro</p>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 bg-indigo-600 rounded flex items-center justify-center">
+                    <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                  </div>
+                  <span className="text-xs font-semibold text-gray-400">ProposalPro</span>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
