@@ -20,11 +20,16 @@ export default function EditorPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Signature fields stored separately so they're always editable
+  // Signature fields
   const [signerName, setSignerName] = useState("");
   const [signerTitle, setSignerTitle] = useState("");
   const [clientName, setClientName] = useState("");
-  const [signatureImage, setSignatureImage] = useState(""); // drawn signature base64
+  const [signatureImage, setSignatureImage] = useState("");
+
+  // Custom fields — stored in content as __custom_{id}: JSON {label, value, type}
+  const [customFields, setCustomFields] = useState<{ id: string; label: string; value: string; type: "text" | "textarea" }[]>([]);
+  const [newFieldLabel, setNewFieldLabel] = useState("");
+  const [newFieldType, setNewFieldType] = useState<"text" | "textarea">("text");
 
   useEffect(() => {
     const supabase = createClient();
@@ -39,6 +44,14 @@ export default function EditorPage() {
       setSignerName(c.yourName || c.freelancerName || c.agencyName || c.consultantName || c.vendor || c.planner || c.party1 || "");
       setClientName(c.clientName || c.preparedFor || c.party2 || "");
       if (c.__signatureImage) setSignatureImage(c.__signatureImage);
+      // Restore custom fields
+      const saved = Object.entries(c)
+        .filter(([k]) => k.startsWith("__custom_"))
+        .map(([k, v]) => {
+          try { return { id: k.replace("__custom_", ""), ...JSON.parse(v) }; } catch { return null; }
+        })
+        .filter(Boolean) as { id: string; label: string; value: string; type: "text" | "textarea" }[];
+      if (saved.length) setCustomFields(saved);
       setLoading(false);
     });
   }, [proposalId, router]);
@@ -69,6 +82,37 @@ export default function EditorPage() {
   function updateField(key: string, value: string) {
     setContent((prev) => ({ ...prev, [key]: value }));
     setSaved(false);
+  }
+
+  function addCustomField() {
+    const label = newFieldLabel.trim();
+    if (!label) return;
+    const id = Date.now().toString();
+    const field = { id, label, value: "", type: newFieldType };
+    const updated = [...customFields, field];
+    setCustomFields(updated);
+    setNewFieldLabel("");
+    const newContent = { ...content, [`__custom_${id}`]: JSON.stringify({ label, value: "", type: newFieldType }) };
+    setContent(newContent);
+    save(newContent);
+  }
+
+  function updateCustomField(id: string, value: string) {
+    const updated = customFields.map(f => f.id === id ? { ...f, value } : f);
+    setCustomFields(updated);
+    const field = updated.find(f => f.id === id)!;
+    const newContent = { ...content, [`__custom_${id}`]: JSON.stringify({ label: field.label, value, type: field.type }) };
+    setContent(newContent);
+    setSaved(false);
+  }
+
+  function removeCustomField(id: string) {
+    const updated = customFields.filter(f => f.id !== id);
+    setCustomFields(updated);
+    const newContent = { ...content };
+    delete newContent[`__custom_${id}`];
+    setContent(newContent);
+    save(newContent);
   }
 
   if (loading) return (
@@ -144,6 +188,70 @@ export default function EditorPage() {
                   )}
                 </div>
               ))}
+
+              {/* Custom fields section */}
+              <div className="pt-4 border-t border-gray-100">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Custom Fields</p>
+
+                {/* Existing custom fields */}
+                {customFields.map((field) => (
+                  <div key={field.id} className="mb-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-medium text-gray-600">{field.label}</label>
+                      <button type="button" onClick={() => removeCustomField(field.id)} className="text-xs text-red-400 hover:text-red-600">✕ Remove</button>
+                    </div>
+                    {field.type === "textarea" ? (
+                      <textarea
+                        value={field.value}
+                        onChange={(e) => updateCustomField(field.id, e.target.value)}
+                        onBlur={() => save()}
+                        rows={3}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                        placeholder={`Enter ${field.label.toLowerCase()}...`}
+                      />
+                    ) : (
+                      <input
+                        type="text"
+                        value={field.value}
+                        onChange={(e) => updateCustomField(field.id, e.target.value)}
+                        onBlur={() => save()}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder={`Enter ${field.label.toLowerCase()}...`}
+                      />
+                    )}
+                  </div>
+                ))}
+
+                {/* Add new field */}
+                <div className="bg-gray-50 rounded-xl p-3 space-y-2">
+                  <input
+                    type="text"
+                    value={newFieldLabel}
+                    onChange={(e) => setNewFieldLabel(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && addCustomField()}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                    placeholder="Field name (e.g. Payment Terms)"
+                  />
+                  <div className="flex gap-2">
+                    <select
+                      value={newFieldType}
+                      onChange={(e) => setNewFieldType(e.target.value as "text" | "textarea")}
+                      className="flex-1 px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                    >
+                      <option value="text">Single line</option>
+                      <option value="textarea">Multi-line</option>
+                    </select>
+                    <button
+                      type="button"
+                      onClick={addCustomField}
+                      disabled={!newFieldLabel.trim()}
+                      className="flex-1 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-40"
+                    >
+                      + Add field
+                    </button>
+                  </div>
+                </div>
+              </div>
 
               {/* Signature section */}
               <div className="pt-4 border-t border-gray-100">
@@ -236,6 +344,23 @@ export default function EditorPage() {
                 <div key={field.key}>
                   <h2 className="text-lg font-bold text-gray-900 mb-3 pb-2 border-b-2 border-indigo-100">{field.label}</h2>
                   <div className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">{content[field.key]}</div>
+                </div>
+              ))}
+
+              {/* Custom fields in preview */}
+              {customFields.filter(f => f.value).map((field) => (
+                <div key={field.id}>
+                  {field.type === "textarea" ? (
+                    <>
+                      <h2 className="text-lg font-bold text-gray-900 mb-3 pb-2 border-b-2 border-indigo-100">{field.label}</h2>
+                      <div className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">{field.value}</div>
+                    </>
+                  ) : (
+                    <div className="flex gap-4 py-2 border-b border-gray-50">
+                      <p className="text-xs text-gray-500 uppercase tracking-wide font-medium w-32 flex-shrink-0 pt-0.5">{field.label}</p>
+                      <p className="font-semibold text-gray-900 text-sm">{field.value}</p>
+                    </div>
+                  )}
                 </div>
               ))}
 
