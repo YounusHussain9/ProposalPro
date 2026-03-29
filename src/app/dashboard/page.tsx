@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { getTemplateById } from "@/lib/templates";
 import DeleteButton from "@/components/DeleteButton";
+import ActivateProButton from "@/components/ActivateProButton";
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ upgrade?: string }> }) {
   const supabase = await createClient();
@@ -91,10 +92,20 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-        {upgradeSuccess && (
+        {/* Show success only when plan is actually pro */}
+        {profile?.plan === "pro" && upgradeSuccess && (
           <div className="mb-6 bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-xl flex items-center gap-3">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
             You&apos;re now on Pro! All templates are unlocked.
+          </div>
+        )}
+
+        {/* Payment made but plan not yet activated */}
+        {upgradeSuccess && profile?.plan !== "pro" && (
+          <div className="mb-6 bg-amber-50 border border-amber-200 text-amber-900 px-6 py-5 rounded-xl">
+            <p className="font-semibold mb-1">Payment received — activating your Pro plan...</p>
+            <p className="text-sm text-amber-700 mb-4">Your Stripe payment was recorded but your plan hasn&apos;t been activated yet. Click below to activate it now.</p>
+            <ActivateProButton />
           </div>
         )}
 
