@@ -15,18 +15,19 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const params = await searchParams;
   const upgradeSuccess = params.upgrade === "success";
 
+  // Always ensure profile row exists for this user (covers existing users before schema was run)
+  const svcInit = await createServiceClient();
+  await svcInit.from("profiles").upsert({
+    id: user.id,
+    email: user.email!,
+    full_name: user.user_metadata?.full_name ?? null,
+  }, { onConflict: "id", ignoreDuplicates: true });
+
   // If returning from Stripe, verify payment and upgrade plan immediately
   if (upgradeSuccess) {
     try {
       const { stripe } = await import("@/lib/stripe");
       const svc = await createServiceClient();
-
-      // Ensure profile row exists (in case trigger didn't fire)
-      await svc.from("profiles").upsert({
-        id: user.id,
-        email: user.email!,
-        full_name: user.user_metadata?.full_name ?? null,
-      }, { onConflict: "id", ignoreDuplicates: true });
 
       // 1. Check DB for a pending payment record
       const { data: payment } = await svc
