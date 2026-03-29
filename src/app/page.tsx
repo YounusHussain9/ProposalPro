@@ -22,48 +22,48 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
       <Navbar />
 
       {/* Hero */}
-      <section className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-24 lg:py-36">
+      <section className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 py-24 lg:py-36">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 bg-indigo-100 text-indigo-700 text-sm font-medium px-4 py-1.5 rounded-full mb-8">
+          <div className="inline-flex items-center gap-2 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-sm font-medium px-4 py-1.5 rounded-full mb-8">
             <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
             3 free proposals — no credit card required
           </div>
-          <h1 className="text-5xl lg:text-7xl font-black text-gray-900 leading-tight mb-6">
+          <h1 className="text-5xl lg:text-7xl font-black text-gray-900 dark:text-gray-50 leading-tight mb-6">
             Create winning proposals<br />
             <span className="text-indigo-600">in minutes</span>
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-10">
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-10">
             Choose from 10+ professional templates, customize your content, and download a PDF proposal that closes deals — no design skills needed.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/templates" className="inline-flex items-center justify-center gap-2 bg-indigo-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">
+            <Link href="/templates" className="inline-flex items-center justify-center gap-2 bg-indigo-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 dark:shadow-none">
               Browse templates
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
             </Link>
             {isLoggedIn ? (
-              <Link href="/dashboard" className="inline-flex items-center justify-center gap-2 bg-white text-gray-700 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-50 border border-gray-200 transition-colors">
+              <Link href="/dashboard" className="inline-flex items-center justify-center gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition-colors">
                 Go to dashboard →
               </Link>
             ) : (
-              <Link href="/auth/signup" className="inline-flex items-center justify-center gap-2 bg-white text-gray-700 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-50 border border-gray-200 transition-colors">
+              <Link href="/auth/signup" className="inline-flex items-center justify-center gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition-colors">
                 Sign up free
               </Link>
             )}
           </div>
-          {!isLoggedIn && <p className="mt-6 text-sm text-gray-500">No credit card required · 3 free proposals</p>}
+          {!isLoggedIn && <p className="mt-6 text-sm text-gray-500 dark:text-gray-400">No credit card required · 3 free proposals</p>}
         </div>
       </section>
 
       {/* How it works */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-800">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">How it works</h2>
-            <p className="text-lg text-gray-600">From blank page to sent proposal in 3 steps</p>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-gray-50 mb-4">How it works</h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400">From blank page to sent proposal in 3 steps</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
@@ -71,10 +71,10 @@ export default function LandingPage() {
               { step: "2", title: "Customize content", desc: "Fill in your details and edit the pre-written sections with our easy rich text editor." },
               { step: "3", title: "Download & send", desc: "Export as a PDF and send to your client. Close more deals faster." },
             ].map((s) => (
-              <div key={s.step} className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
-                <div className="w-12 h-12 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center text-xl font-black mx-auto mb-4">{s.step}</div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">{s.title}</h3>
-                <p className="text-gray-600 text-sm">{s.desc}</p>
+              <div key={s.step} className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 p-8 text-center">
+                <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded-full flex items-center justify-center text-xl font-black mx-auto mb-4">{s.step}</div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-50 mb-2">{s.title}</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">{s.desc}</p>
               </div>
             ))}
           </div>
@@ -82,17 +82,17 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-900">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Everything you need to win clients</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-gray-50 mb-4">Everything you need to win clients</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((f) => (
-              <div key={f.title} className="p-6 bg-gray-50 rounded-2xl border border-gray-100 hover:border-indigo-200 hover:bg-indigo-50 transition-colors group">
+              <div key={f.title} className="p-6 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 hover:border-indigo-200 dark:hover:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors group">
                 <div className="text-3xl mb-4">{f.icon}</div>
-                <h3 className="font-semibold text-gray-900 mb-2">{f.title}</h3>
-                <p className="text-sm text-gray-600">{f.desc}</p>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-50 mb-2">{f.title}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -116,15 +116,15 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing preview */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-800">
         <div className="max-w-3xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Simple pricing</h2>
-          <p className="text-lg text-gray-600 mb-10">Start free. Upgrade when you need more.</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-50 mb-4">Simple pricing</h2>
+          <p className="text-lg text-gray-600 dark:text-gray-400 mb-10">Start free. Upgrade when you need more.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-            <div className="bg-white border border-gray-200 rounded-2xl p-8 text-left">
-              <div className="text-2xl font-bold text-gray-900 mb-1">Free</div>
-              <div className="text-gray-500 text-sm mb-6">Forever free</div>
-              <ul className="space-y-3 text-sm text-gray-700">
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-8 text-left">
+              <div className="text-2xl font-bold text-gray-900 dark:text-gray-50 mb-1">Free</div>
+              <div className="text-gray-500 dark:text-gray-400 text-sm mb-6">Forever free</div>
+              <ul className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
                 <li className="flex gap-2"><span className="text-green-600">✓</span> 3 free templates</li>
                 <li className="flex gap-2"><span className="text-green-600">✓</span> 3 PDF exports</li>
                 <li className="flex gap-2"><span className="text-green-600">✓</span> Rich text editor</li>
@@ -141,12 +141,12 @@ export default function LandingPage() {
               </ul>
             </div>
           </div>
-          <Link href="/pricing" className="inline-flex items-center gap-2 text-indigo-600 font-semibold hover:text-indigo-700">View full pricing details →</Link>
+          <Link href="/pricing" className="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-semibold hover:text-indigo-700 dark:hover:text-indigo-300">View full pricing details →</Link>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-gray-900">
+      <section className="py-20 bg-gray-900 dark:bg-gray-950">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">Start creating proposals today</h2>
           <p className="text-lg text-gray-400 mb-8">Free to start. No credit card. 3 proposals on us.</p>

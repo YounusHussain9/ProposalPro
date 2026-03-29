@@ -107,10 +107,10 @@ export default function EditorPage() {
   }
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
       <div className="text-center">
         <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-gray-600 text-sm">Loading proposal...</p>
+        <p className="text-gray-600 dark:text-gray-400 text-sm">Loading proposal...</p>
       </div>
     </div>
   );
@@ -124,26 +124,26 @@ export default function EditorPage() {
   const displayClientName = clientName || content.clientName || content.preparedFor || content.party2 || "";
 
   return (
-    <div className="min-h-screen bg-gray-100 print:bg-white">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 print:bg-white">
       {/* Top bar */}
-      <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center justify-between print:hidden sticky top-0 z-40">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3 flex items-center justify-between print:hidden sticky top-0 z-40">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="text-gray-500 hover:text-gray-700 transition-colors">
+          <Link href="/dashboard" className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
           </Link>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onBlur={() => save()}
-            className="text-sm font-semibold text-gray-900 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-indigo-500 focus:outline-none px-1 py-0.5 min-w-[200px]"
+            className="text-sm font-semibold text-gray-900 dark:text-gray-50 bg-transparent border-b border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-indigo-500 focus:outline-none px-1 py-0.5 min-w-[200px]"
           />
         </div>
         <div className="flex items-center gap-3">
-          {error && <span className="text-xs text-red-600">{error}</span>}
-          <span className={`text-xs transition-all ${saved ? "text-green-600" : saving ? "text-gray-400" : "text-transparent"}`}>
+          {error && <span className="text-xs text-red-600 dark:text-red-400">{error}</span>}
+          <span className={`text-xs transition-all ${saved ? "text-green-600 dark:text-green-400" : saving ? "text-gray-400" : "text-transparent"}`}>
             {saved ? "✓ Saved" : saving ? "Saving..." : "."}
           </span>
-          <button onClick={() => save()} disabled={saving} className="text-sm text-gray-600 border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors print:hidden">
+          <button onClick={() => save()} disabled={saving} className="text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors print:hidden">
             Save
           </button>
           <PrintButton proposalTitle={title} />
@@ -153,21 +153,21 @@ export default function EditorPage() {
       <div className="max-w-6xl mx-auto px-4 py-8 print:p-0 grid grid-cols-1 lg:grid-cols-3 gap-6 print:block">
         {/* Fields panel */}
         <div className="lg:col-span-1 print:hidden">
-          <div className="bg-white rounded-2xl border border-gray-200 p-5 sticky top-20">
-            <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 sticky top-20">
+            <h2 className="font-semibold text-gray-900 dark:text-gray-50 mb-4 flex items-center gap-2">
               <span className="text-lg">{template.icon}</span> Edit Fields
             </h2>
             <div className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
               {activeFields.map((field) => (
                 <div key={field.key}>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">{field.label}</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{field.label}</label>
                   {field.type === "textarea" ? (
                     <textarea
                       value={content[field.key] ?? ""}
                       onChange={(e) => updateField(field.key, e.target.value)}
                       onBlur={() => save()}
                       rows={3}
-                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none placeholder:text-gray-400 dark:placeholder:text-gray-500"
                       placeholder={field.placeholder}
                     />
                   ) : (
@@ -176,7 +176,7 @@ export default function EditorPage() {
                       value={content[field.key] ?? ""}
                       onChange={(e) => updateField(field.key, e.target.value)}
                       onBlur={() => save()}
-                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder:text-gray-400 dark:placeholder:text-gray-500"
                       placeholder={field.placeholder}
                     />
                   )}
@@ -184,39 +184,39 @@ export default function EditorPage() {
               ))}
 
               {/* Signature section */}
-              <div className="pt-4 border-t border-gray-100">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Signature Block</p>
+              <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Signature Block</p>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Your name (signer)</label>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Your name (signer)</label>
                     <input
                       type="text"
                       value={signerName}
                       onChange={(e) => setSignerName(e.target.value)}
                       onBlur={() => save()}
-                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       placeholder="Your full name"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Your title / role</label>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Your title / role</label>
                     <input
                       type="text"
                       value={signerTitle}
                       onChange={(e) => setSignerTitle(e.target.value)}
                       onBlur={() => save()}
-                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       placeholder="e.g. CEO, Freelancer"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Client name</label>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Client name</label>
                     <input
                       type="text"
                       value={clientName}
                       onChange={(e) => setClientName(e.target.value)}
                       onBlur={() => save()}
-                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       placeholder="Client full name"
                     />
                   </div>
