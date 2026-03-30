@@ -85,10 +85,28 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   }
 
   const svcFinal = await createServiceClient();
-  const [{ data: profile }, { data: proposals }] = await Promise.all([
+  const [{ data: profile }, { data: proposals }, { data: allProposalsForChart }] = await Promise.all([
     svcFinal.from("profiles").select("*").eq("id", user.id).single(),
     svcFinal.from("proposals").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }),
+    svcFinal.from("proposals").select("template_id"),
   ]);
+
+  const templateCounts = (allProposalsForChart ?? []).reduce<Record<string, number>>((acc, p) => {
+    acc[p.template_id] = (acc[p.template_id] ?? 0) + 1;
+    return acc;
+  }, {});
+  const templateStats = Object.entries(templateCounts)
+    .map(([template_id, count]) => ({ template_id, count }))
+    .sort((a, b) => b.count - a.count);
+  const maxCount = templateStats[0]?.count ?? 1;
+
+  function getTemplateLabel(id: string): string {
+    const t = getTemplateById(id);
+    if (t) return t.title;
+    if (id.startsWith("custom_")) return "Custom Template";
+    return id.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+  const BAR_COLORS = ["bg-indigo-500","bg-purple-500","bg-emerald-500","bg-amber-500","bg-rose-500","bg-cyan-500"];
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
@@ -190,6 +208,32 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             </div>
           )}
         </div>
+
+        {templateStats.length > 0 && (
+          <div className="mt-8 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+              <h2 className="font-semibold text-gray-900 dark:text-gray-50">Template Usage</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Most-used templates across all proposals</p>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              {templateStats.map(({ template_id, count }, i) => {
+                const pct = Math.round((count / maxCount) * 100);
+                const color = BAR_COLORS[i % BAR_COLORS.length];
+                return (
+                  <div key={template_id}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{getTemplateLabel(template_id)}</span>
+                      <span className="text-sm font-semibold text-gray-900 dark:text-gray-50 tabular-nums">{count} {count === 1 ? "proposal" : "proposals"}</span>
+                    </div>
+                    <div className="h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                      <div className={`h-full ${color} rounded-full transition-all duration-500`} style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </main>
       <Footer />
     </div>

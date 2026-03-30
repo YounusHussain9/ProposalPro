@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "proposalpro-stats": {
+      "command": "node",
+      "args": ["mcp/stats-server.js"],
+      "cwd": "/Users/syedmuhammadyounis/Desktop/Image-to-html"
+    }
+  }
+}
