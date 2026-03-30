@@ -34,10 +34,11 @@ export async function POST(request: NextRequest) {
 
     // Ensure profile row exists (user may not have visited dashboard yet)
     const svcEnsure = await createServiceClient();
-    await svcEnsure.from("profiles").upsert(
-      { id: user.id, email: user.email!, full_name: user.user_metadata?.full_name ?? null },
-      { onConflict: "id", ignoreDuplicates: true }
+    const { error: upsertError } = await svcEnsure.from("profiles").upsert(
+      { id: user.id, email: user.email!, full_name: user.user_metadata?.full_name ?? null, plan: "free" },
+      { onConflict: "id" }
     );
+    if (upsertError) console.error("Profile upsert failed:", upsertError.message);
 
     // Handle custom templates
     if (typeof body.templateId === "string" && body.templateId.startsWith("custom_")) {
