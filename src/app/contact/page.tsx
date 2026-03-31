@@ -23,6 +23,7 @@ export default function ContactPage() {
       });
       if (res.ok) {
         setSuccess(true);
+        setName(""); setEmail(""); setSubject(""); setMessage("");
       } else {
         const data = await res.json();
         setError(data.error || "Something went wrong. Please try again.");

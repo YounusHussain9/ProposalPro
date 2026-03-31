@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import type { TemplateField } from "@/types";
+import { DEFAULT_TEMPLATE_ICON, DEFAULT_TEMPLATE_COLOR } from "@/lib/constants";
 
 interface Props {
   onClose: () => void;
@@ -23,8 +24,8 @@ type FieldDraft = { label: string; type: TemplateField["type"] };
 export default function CustomTemplateBuilder({ onClose, onCreated }: Props) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [icon, setIcon] = useState("📄");
-  const [color, setColor] = useState("from-indigo-500 to-indigo-700");
+  const [icon, setIcon] = useState(DEFAULT_TEMPLATE_ICON);
+  const [color, setColor] = useState(DEFAULT_TEMPLATE_COLOR);
   const [fields, setFields] = useState<FieldDraft[]>([{ label: "", type: "text" }]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");

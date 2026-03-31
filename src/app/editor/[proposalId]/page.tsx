@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase-browser";
 import { getTemplateById } from "@/lib/templates";
 import PrintButton from "@/components/PrintButton";
 import SignaturePad from "@/components/SignaturePad";
+import StatusDropdown from "@/components/StatusDropdown";
 import type { Proposal, Template, TemplateField } from "@/types";
 
 export default function EditorPage() {
@@ -16,6 +17,7 @@ export default function EditorPage() {
   const [customFields, setCustomFields] = useState<TemplateField[]>([]);
   const [content, setContent] = useState<Record<string, string>>({});
   const [title, setTitle] = useState("");
+  const [clientEmail, setClientEmail] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -35,6 +37,7 @@ export default function EditorPage() {
       const c = data.content as Record<string, string>;
       setContent(c);
       setTitle(data.title);
+      setClientEmail(data.client_email ?? "");
 
       const templateId: string = data.template_id;
 
@@ -79,13 +82,14 @@ export default function EditorPage() {
   }, [proposalId, router]);
 
   const save = useCallback(async (overrideContent?: Record<string, string>) => {
+    if (!title.trim()) { setError("Title is required."); return; }
     setError("");
     setSaving(true);
     try {
       const res = await fetch("/api/proposals", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: proposalId, title, content: overrideContent ?? content }),
+        body: JSON.stringify({ id: proposalId, title, content: overrideContent ?? content, client_email: clientEmail }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -139,6 +143,17 @@ export default function EditorPage() {
           />
         </div>
         <div className="flex items-center gap-3">
+          <input
+            value={clientEmail}
+            onChange={(e) => setClientEmail(e.target.value)}
+            onBlur={() => save()}
+            type="email"
+            placeholder="Client email"
+            className="hidden sm:block text-xs text-gray-600 bg-transparent border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-44 placeholder:text-gray-400"
+          />
+          {proposal && (
+            <StatusDropdown proposalId={proposal.id} initialStatus={(proposal.status as "draft" | "sent" | "accepted" | "declined") ?? "draft"} />
+          )}
           {error && <span className="text-xs text-red-600">{error}</span>}
           <span className={`text-xs transition-all ${saved ? "text-green-600" : saving ? "text-gray-400" : "text-transparent"}`}>
             {saved ? "✓ Saved" : saving ? "Saving..." : "."}
@@ -146,7 +161,7 @@ export default function EditorPage() {
           <button onClick={() => save()} disabled={saving} className="text-sm text-gray-600 border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors print:hidden">
             Save
           </button>
-          <PrintButton proposalTitle={title} />
+          <PrintButton proposalTitle={title} proposalId={proposalId} />
         </div>
       </div>
 
