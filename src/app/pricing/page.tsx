@@ -55,15 +55,15 @@ export default function PricingPage() {
   const isPro = userPlan === "pro";
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
+    <div className="min-h-screen flex flex-col bg-white">
       <Navbar />
       <main className="flex-1">
-        <section className="bg-gray-50 dark:bg-gray-800 py-16 text-center border-b border-gray-100 dark:border-gray-700">
+        <section className="bg-gray-50 py-16 text-center border-b border-gray-100">
           <div className="max-w-3xl mx-auto px-4">
-            <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-gray-50 mb-4">Simple, honest pricing</h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400">Start free. Upgrade when you need more templates and exports.</p>
+            <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">Simple, honest pricing</h1>
+            <p className="text-lg text-gray-600">Start free. Upgrade when you need more templates and exports.</p>
             {isPro && (
-              <div className="mt-6 inline-flex items-center gap-2 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-5 py-2.5 rounded-full font-semibold text-sm">
+              <div className="mt-6 inline-flex items-center gap-2 bg-indigo-100 text-indigo-700 px-5 py-2.5 rounded-full font-semibold text-sm">
                 ⭐ You&apos;re on Pro — all features unlocked
               </div>
             )}
@@ -72,7 +72,7 @@ export default function PricingPage() {
 
         {error && (
           <div className="max-w-4xl mx-auto px-4 pt-8">
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-5 py-4 rounded-xl text-sm flex items-center gap-3">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-5 py-4 rounded-xl text-sm flex items-center gap-3">
               <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
               {error}
             </div>
@@ -83,12 +83,12 @@ export default function PricingPage() {
           {!ready && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-2xl p-8 animate-pulse">
-                  <div className="h-4 w-16 bg-gray-100 dark:bg-gray-700 rounded mb-4" />
-                  <div className="h-10 w-24 bg-gray-100 dark:bg-gray-700 rounded mb-2" />
-                  <div className="h-3 w-20 bg-gray-100 dark:bg-gray-700 rounded mb-6" />
-                  <div className="space-y-3 mb-8">{[1,2,3,4].map(j => <div key={j} className="h-3 bg-gray-100 dark:bg-gray-700 rounded" />)}</div>
-                  <div className="h-11 bg-gray-100 dark:bg-gray-700 rounded-xl" />
+                <div key={i} className="bg-white border-2 border-gray-100 rounded-2xl p-8 animate-pulse">
+                  <div className="h-4 w-16 bg-gray-100 rounded mb-4" />
+                  <div className="h-10 w-24 bg-gray-100 rounded mb-2" />
+                  <div className="h-3 w-20 bg-gray-100 rounded mb-6" />
+                  <div className="space-y-3 mb-8">{[1,2,3,4].map(j => <div key={j} className="h-3 bg-gray-100 rounded" />)}</div>
+                  <div className="h-11 bg-gray-100 rounded-xl" />
                 </div>
               ))}
             </div>
@@ -98,17 +98,17 @@ export default function PricingPage() {
               {/* Free */}
               <div
                 onClick={() => setSelected("free")}
-                className={`bg-white dark:bg-gray-800 border-2 rounded-2xl p-8 cursor-pointer transition-all ${selected === "free" ? "border-indigo-500 ring-2 ring-indigo-200 dark:ring-indigo-800" : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"}`}
+                className={`bg-white border-2 rounded-2xl p-8 cursor-pointer transition-all ${selected === "free" ? "border-indigo-500 ring-2 ring-indigo-200" : "border-gray-200 hover:border-gray-300"}`}
               >
                 {!isPro && isLoggedIn && (
-                  <div className="inline-flex items-center gap-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold px-3 py-1 rounded-full mb-3">Current plan</div>
+                  <div className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full mb-3">Current plan</div>
                 )}
-                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-50 mb-1">Free</h3>
-                <div className="text-4xl font-black text-gray-900 dark:text-gray-50 mb-1">$0</div>
-                <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">Forever free</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">Free</h3>
+                <div className="text-4xl font-black text-gray-900 mb-1">$0</div>
+                <p className="text-gray-500 text-sm mb-6">Forever free</p>
                 <ul className="space-y-3 text-sm">
                   {["3 free templates", "3 PDF exports/month", "Rich text editor", "Dashboard access"].map((f) => (
-                    <li key={f} className="flex items-center gap-2 text-gray-700 dark:text-gray-300"><svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>{f}</li>
+                    <li key={f} className="flex items-center gap-2 text-gray-700"><svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>{f}</li>
                   ))}
                 </ul>
               </div>
@@ -136,14 +136,14 @@ export default function PricingPage() {
               {/* Pro Lifetime */}
               <div
                 onClick={() => setSelected("pro_lifetime")}
-                className={`bg-white dark:bg-gray-800 border-2 rounded-2xl p-8 cursor-pointer transition-all ${selected === "pro_lifetime" ? "border-indigo-500 ring-2 ring-indigo-200 dark:ring-indigo-800" : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"}`}
+                className={`bg-white border-2 rounded-2xl p-8 cursor-pointer transition-all ${selected === "pro_lifetime" ? "border-indigo-500 ring-2 ring-indigo-200" : "border-gray-200 hover:border-gray-300"}`}
               >
-                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-50 mb-1">Pro Lifetime</h3>
-                <div className="text-4xl font-black text-gray-900 dark:text-gray-50 mb-1">$29</div>
-                <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">Pay once, use forever</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">Pro Lifetime</h3>
+                <div className="text-4xl font-black text-gray-900 mb-1">$29</div>
+                <p className="text-gray-500 text-sm mb-6">Pay once, use forever</p>
                 <ul className="space-y-3 text-sm">
                   {["Everything in Pro Monthly", "Lifetime access", "All future templates", "No recurring fees"].map((f) => (
-                    <li key={f} className="flex items-center gap-2 text-gray-700 dark:text-gray-300"><svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>{f}</li>
+                    <li key={f} className="flex items-center gap-2 text-gray-700"><svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>{f}</li>
                   ))}
                 </ul>
               </div>
@@ -152,7 +152,7 @@ export default function PricingPage() {
             {/* Single CTA below cards */}
             <div className="flex justify-center mb-16">
               {selected === "free" ? (
-                <Link href={isLoggedIn ? "/dashboard" : "/auth/signup"} className="px-10 py-3 bg-gray-900 dark:bg-gray-700 text-white rounded-xl font-semibold hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors">
+                <Link href={isLoggedIn ? "/dashboard" : "/auth/signup"} className="px-10 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors">
                   {isLoggedIn ? "Go to dashboard" : "Get started free"}
                 </Link>
               ) : selected === "pro_monthly" || selected === "pro_lifetime" ? (
@@ -164,14 +164,14 @@ export default function PricingPage() {
                   {loading ? "Redirecting..." : selected === "pro_monthly" ? "Upgrade to Pro — $12/mo" : "Buy Lifetime Access — $29"}
                 </button>
               ) : (
-                <p className="text-sm text-gray-400 dark:text-gray-500">Select a plan above to continue</p>
+                <p className="text-sm text-gray-400">Select a plan above to continue</p>
               )}
             </div>
           </>}
 
           {/* FAQ */}
           <div className="max-w-2xl mx-auto">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-50 text-center mb-8">FAQ</h2>
+            <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">FAQ</h2>
             <div className="space-y-6">
               {[
                 { q: "What does one export mean?", a: "Each time you download/print a proposal as PDF, it counts as one export. Free plan includes 3 exports per month." },
@@ -179,9 +179,9 @@ export default function PricingPage() {
                 { q: "What payment methods are accepted?", a: "All major credit and debit cards via Stripe. Secure and encrypted." },
                 { q: "Can I cancel my Pro Monthly subscription?", a: "Yes, cancel any time from your account. You keep Pro access until the end of your billing period." },
               ].map((item) => (
-                <div key={item.q} className="border-b border-gray-100 dark:border-gray-700 pb-6">
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-50 mb-2">{item.q}</h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">{item.a}</p>
+                <div key={item.q} className="border-b border-gray-100 pb-6">
+                  <h3 className="font-semibold text-gray-900 mb-2">{item.q}</h3>
+                  <p className="text-gray-600 text-sm">{item.a}</p>
                 </div>
               ))}
             </div>

@@ -3,33 +3,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase-browser";
 import { useEffect, useState } from "react";
-import { useTheme } from "next-themes";
 import type { User } from "@supabase/supabase-js";
-
-function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  if (!mounted) return <div className="w-9 h-9" />;
-  const isDark = theme === "dark";
-  return (
-    <button
-      onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
-      aria-label="Toggle dark mode"
-    >
-      {isDark ? (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-      ) : (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-        </svg>
-      )}
-    </button>
-  );
-}
 
 export default function Navbar() {
   const router = useRouter();
@@ -53,59 +27,55 @@ export default function Navbar() {
   const isActive = (href: string) => pathname === href;
 
   return (
-    <nav className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-50">
+    <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
               <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
             </div>
-            <span className="text-xl font-bold text-gray-900 dark:text-white">ProposalPro</span>
+            <span className="text-xl font-bold text-gray-900">ProposalPro</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-6">
-            <Link href="/templates" className={`text-sm transition-colors ${isActive("/templates") ? "text-indigo-600 font-medium" : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"}`}>Templates</Link>
-            <Link href="/pricing" className={`text-sm transition-colors ${isActive("/pricing") ? "text-indigo-600 font-medium" : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"}`}>Pricing</Link>
-            <Link href="/contact" className={`text-sm transition-colors ${isActive("/contact") ? "text-indigo-600 font-medium" : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"}`}>Contact</Link>
+            <Link href="/templates" className={`text-sm transition-colors ${isActive("/templates") ? "text-indigo-600 font-medium" : "text-gray-600 hover:text-gray-900"}`}>Templates</Link>
+            <Link href="/pricing" className={`text-sm transition-colors ${isActive("/pricing") ? "text-indigo-600 font-medium" : "text-gray-600 hover:text-gray-900"}`}>Pricing</Link>
+            <Link href="/contact" className={`text-sm transition-colors ${isActive("/contact") ? "text-indigo-600 font-medium" : "text-gray-600 hover:text-gray-900"}`}>Contact</Link>
             {!ready ? (
               <div className="flex items-center gap-3">
-                <div className="h-4 w-14 bg-gray-100 dark:bg-gray-700 rounded animate-pulse" />
-                <div className="h-8 w-28 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse" />
+                <div className="h-4 w-14 bg-gray-100 rounded animate-pulse" />
+                <div className="h-8 w-28 bg-gray-100 rounded-lg animate-pulse" />
               </div>
             ) : user ? (
               <>
-                <Link href="/dashboard" className={`text-sm transition-colors ${isActive("/dashboard") ? "text-indigo-600 font-medium" : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"}`}>Dashboard</Link>
-                <button onClick={signOut} className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">Sign out</button>
+                <Link href="/dashboard" className={`text-sm transition-colors ${isActive("/dashboard") ? "text-indigo-600 font-medium" : "text-gray-600 hover:text-gray-900"}`}>Dashboard</Link>
+                <button onClick={signOut} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Sign out</button>
               </>
             ) : (
               <>
-                <Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">Log in</Link>
+                <Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Log in</Link>
                 <Link href="/auth/signup" className="text-sm bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-medium">Get started free</Link>
               </>
             )}
-            <ThemeToggle />
           </div>
 
-          <div className="md:hidden flex items-center gap-2">
-            <ThemeToggle />
-            <button className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800" onClick={() => setMenuOpen(!menuOpen)}>
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">{menuOpen ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />}</svg>
-            </button>
-          </div>
+          <button className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100" onClick={() => setMenuOpen(!menuOpen)}>
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">{menuOpen ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />}</svg>
+          </button>
         </div>
         {menuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-100 dark:border-gray-800 space-y-3">
-            <Link href="/templates" className="block text-sm text-gray-600 dark:text-gray-400 py-2">Templates</Link>
-            <Link href="/pricing" className="block text-sm text-gray-600 dark:text-gray-400 py-2">Pricing</Link>
-            <Link href="/contact" className="block text-sm text-gray-600 dark:text-gray-400 py-2">Contact</Link>
+          <div className="md:hidden py-4 border-t border-gray-100 space-y-3">
+            <Link href="/templates" className="block text-sm text-gray-600 py-2">Templates</Link>
+            <Link href="/pricing" className="block text-sm text-gray-600 py-2">Pricing</Link>
+            <Link href="/contact" className="block text-sm text-gray-600 py-2">Contact</Link>
             {!ready ? null : user ? (
               <>
-                <Link href="/dashboard" className="block text-sm text-gray-600 dark:text-gray-400 py-2">Dashboard</Link>
-                <button onClick={signOut} className="block text-sm text-gray-600 dark:text-gray-400 py-2 w-full text-left">Sign out</button>
+                <Link href="/dashboard" className="block text-sm text-gray-600 py-2">Dashboard</Link>
+                <button onClick={signOut} className="block text-sm text-gray-600 py-2 w-full text-left">Sign out</button>
               </>
             ) : (
               <>
-                <Link href="/auth/login" className="block text-sm text-gray-600 dark:text-gray-400 py-2">Log in</Link>
+                <Link href="/auth/login" className="block text-sm text-gray-600 py-2">Log in</Link>
                 <Link href="/auth/signup" className="block text-sm bg-indigo-600 text-white px-4 py-2 rounded-lg text-center">Get started free</Link>
               </>
             )}

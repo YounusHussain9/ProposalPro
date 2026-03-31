@@ -72,11 +72,11 @@ export default function CustomTemplateBuilder({ onClose, onCreated }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-50">Create Custom Template</h2>
-          <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 className="text-lg font-bold text-gray-900">Create Custom Template</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -87,38 +87,38 @@ export default function CustomTemplateBuilder({ onClose, onCreated }: Props) {
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
           {/* Title */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">Template Title *</label>
+            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Template Title *</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="e.g. Consulting Agreement"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">Description</label>
+            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Description</label>
             <input
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="Short description of the template"
             />
           </div>
 
           {/* Icon picker */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">Icon</label>
+            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Icon</label>
             <div className="flex flex-wrap gap-2">
               {ICON_OPTIONS.map((em) => (
                 <button
                   key={em}
                   type="button"
                   onClick={() => setIcon(em)}
-                  className={`w-10 h-10 text-xl rounded-lg border-2 transition-colors ${icon === em ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30" : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"}`}
+                  className={`w-10 h-10 text-xl rounded-lg border-2 transition-colors ${icon === em ? "border-indigo-500 bg-indigo-50" : "border-gray-200 hover:border-gray-300"}`}
                 >
                   {em}
                 </button>
@@ -128,14 +128,14 @@ export default function CustomTemplateBuilder({ onClose, onCreated }: Props) {
 
           {/* Color picker */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">Color</label>
+            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Color</label>
             <div className="flex flex-wrap gap-2">
               {COLOR_OPTIONS.map((c) => (
                 <button
                   key={c.value}
                   type="button"
                   onClick={() => setColor(c.value)}
-                  className={`h-8 px-3 rounded-lg text-white text-xs font-semibold bg-gradient-to-r ${c.value} border-2 transition-all ${color === c.value ? "border-white scale-105" : "border-transparent"}`}
+                  className={`h-8 px-3 rounded-lg text-white text-xs font-semibold bg-gradient-to-r ${c.value} border-2 transition-all ${color === c.value ? "border-gray-900 scale-105" : "border-transparent"}`}
                 >
                   {c.label}
                 </button>
@@ -145,7 +145,7 @@ export default function CustomTemplateBuilder({ onClose, onCreated }: Props) {
 
           {/* Fields */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">Fields *</label>
+            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Fields *</label>
             <div className="space-y-2">
               {fields.map((field, i) => (
                 <div key={i} className="flex gap-2 items-center">
@@ -153,13 +153,13 @@ export default function CustomTemplateBuilder({ onClose, onCreated }: Props) {
                     type="text"
                     value={field.label}
                     onChange={(e) => updateField(i, { label: e.target.value })}
-                    className="flex-1 px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     placeholder={`Field ${i + 1} label`}
                   />
                   <select
                     value={field.type}
                     onChange={(e) => updateField(i, { type: e.target.value as TemplateField["type"] })}
-                    className="px-2 py-2 text-xs border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-50"
+                    className="px-2 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
                   >
                     <option value="text">Text</option>
                     <option value="textarea">Textarea</option>
@@ -192,15 +192,15 @@ export default function CustomTemplateBuilder({ onClose, onCreated }: Props) {
             </button>
           </div>
 
-          {error && <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg">{error}</p>}
+          {error && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 flex gap-3">
+        <div className="px-6 py-4 border-t border-gray-100 flex gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-2.5 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            className="flex-1 py-2.5 border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-colors"
           >
             Cancel
           </button>

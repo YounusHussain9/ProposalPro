@@ -40,6 +40,7 @@ export default function TemplatesPage() {
 
   useEffect(() => {
     fetchCustomTemplates();
+    // Fetch user plan so TemplateCard knows if user is pro
     createClient().auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
       const { data: profile } = await createClient()
@@ -91,13 +92,13 @@ export default function TemplatesPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-10 flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-50 mb-2">Proposal Templates</h1>
-            <p className="text-gray-600 dark:text-gray-400">Choose a template to get started. Free templates included — no signup required.</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Proposal Templates</h1>
+            <p className="text-gray-600">Choose a template to get started. Free templates included — no signup required.</p>
           </div>
           <button
             onClick={() => setShowBuilder(true)}
@@ -114,12 +115,13 @@ export default function TemplatesPage() {
         {customTemplates.length > 0 && (
           <div className="mb-12">
             <div className="flex items-center gap-3 mb-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-50">My Templates</h2>
-              <span className="bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs font-semibold px-3 py-1 rounded-full">Custom</span>
+              <h2 className="text-xl font-bold text-gray-900">My Templates</h2>
+              <span className="bg-indigo-100 text-indigo-700 text-xs font-semibold px-3 py-1 rounded-full">Custom</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {customTemplates.map((template) => (
-                <div key={template.id} className="group bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-lg transition-all">
+                <div key={template.id} className="group bg-white rounded-2xl border border-gray-200 overflow-hidden hover:border-indigo-300 hover:shadow-lg transition-all">
+                  {/* Thumbnail */}
                   <div className={`h-40 bg-gradient-to-br ${template.color} flex items-center justify-center relative`}>
                     <span className="text-5xl">{template.icon}</span>
                     <button
@@ -133,12 +135,13 @@ export default function TemplatesPage() {
                       </svg>
                     </button>
                   </div>
+                  {/* Info */}
                   <div className="p-5">
                     <div className="mb-2">
-                      <span className="text-xs text-indigo-600 dark:text-indigo-400 font-medium uppercase tracking-wide">Custom</span>
-                      <h3 className="font-semibold text-gray-900 dark:text-gray-50 mt-0.5">{template.title}</h3>
+                      <span className="text-xs text-indigo-600 font-medium uppercase tracking-wide">Custom</span>
+                      <h3 className="font-semibold text-gray-900 mt-0.5">{template.title}</h3>
                     </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">{template.description || "No description"}</p>
+                    <p className="text-sm text-gray-500 mb-4 line-clamp-2">{template.description || "No description"}</p>
                     <button
                       onClick={() => handleUseCustom(template)}
                       disabled={creatingId === template.id}
@@ -156,8 +159,8 @@ export default function TemplatesPage() {
         {/* Free templates */}
         <div className="mb-12">
           <div className="flex items-center gap-3 mb-6">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-50">Free Templates</h2>
-            <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold px-3 py-1 rounded-full">No signup needed</span>
+            <h2 className="text-xl font-bold text-gray-900">Free Templates</h2>
+            <span className="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">No signup needed</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {TEMPLATES.filter((t) => !t.isPremium).map((template) => (
@@ -169,8 +172,8 @@ export default function TemplatesPage() {
         {/* Premium templates */}
         <div className="mb-12">
           <div className="flex items-center gap-3 mb-6">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-50">Premium Templates</h2>
-            <span className="bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs font-semibold px-3 py-1 rounded-full">Pro plan</span>
+            <h2 className="text-xl font-bold text-gray-900">Premium Templates</h2>
+            <span className="bg-indigo-100 text-indigo-700 text-xs font-semibold px-3 py-1 rounded-full">Pro plan</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {TEMPLATES.filter((t) => t.isPremium).map((template) => (

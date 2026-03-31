@@ -26,7 +26,7 @@ export default function TemplateCard({ template, userPlan }: { template: Templat
   }
 
   return (
-    <div className="group bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-lg transition-all">
+    <div className="group bg-white rounded-2xl border border-gray-200 overflow-hidden hover:border-indigo-300 hover:shadow-lg transition-all">
       {/* Thumbnail */}
       <div className={`h-40 bg-gradient-to-br ${template.color} flex items-center justify-center relative`}>
         <span className="text-5xl">{template.icon}</span>
@@ -41,15 +41,15 @@ export default function TemplateCard({ template, userPlan }: { template: Templat
       <div className="p-5">
         <div className="flex items-start justify-between mb-2">
           <div>
-            <span className="text-xs text-indigo-600 dark:text-indigo-400 font-medium uppercase tracking-wide">{template.category}</span>
-            <h3 className="font-semibold text-gray-900 dark:text-gray-50 mt-0.5">{template.title}</h3>
+            <span className="text-xs text-indigo-600 font-medium uppercase tracking-wide">{template.category}</span>
+            <h3 className="font-semibold text-gray-900 mt-0.5">{template.title}</h3>
           </div>
         </div>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">{template.description}</p>
+        <p className="text-sm text-gray-500 mb-4 line-clamp-2">{template.description}</p>
         {cardError && (
-          <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 px-3 py-2 rounded-lg mb-3">{cardError}</p>
+          <p className="text-xs text-red-600 bg-red-50 border border-red-100 px-3 py-2 rounded-lg mb-3">{cardError}</p>
         )}
-        <button onClick={handleUse} disabled={loading} className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 ${locked ? "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600" : "bg-indigo-600 text-white hover:bg-indigo-700"}`}>
+        <button onClick={handleUse} disabled={loading} className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 ${locked ? "bg-gray-100 text-gray-700 hover:bg-gray-200" : "bg-indigo-600 text-white hover:bg-indigo-700"}`}>
           {loading ? "Creating..." : locked ? "🔒 Upgrade to use" : "Use this template"}
         </button>
       </div>
