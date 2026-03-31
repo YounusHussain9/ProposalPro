@@ -5,5 +5,26 @@
       "args": ["mcp/stats-server.js"],
       "cwd": "/Users/syedmuhammadyounis/Desktop/Image-to-html"
     }
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git commit*)",
+            "command": "npm run lint 2>&1 | head -40",
+            "statusMessage": "Linting before commit..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(git push*)",
+            "command": "npm run lint 2>&1 | head -80",
+            "statusMessage": "Linting before push..."
+          }
+        ]
+      }
+    ]
   }
 }

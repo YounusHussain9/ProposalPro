@@ -7,6 +7,7 @@ import { getTemplateById } from "@/lib/templates";
 import DeleteButton from "@/components/DeleteButton";
 import ActivateProButton from "@/components/ActivateProButton";
 import StatusDropdown from "@/components/StatusDropdown";
+import { FREE_EXPORT_LIMIT, PRO_EXPORT_LIMIT, STRIPE_SESSION_FETCH_LIMIT, DEFAULT_PLAN } from "@/lib/constants";
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ upgrade?: string }> }) {
   const supabase = await createClient();
@@ -18,11 +19,13 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   // Always ensure profile row exists for this user (covers existing users before schema was run)
   const svcInit = await createServiceClient();
-  await svcInit.from("profiles").upsert({
+  const { error: upsertProfileError } = await svcInit.from("profiles").upsert({
     id: user.id,
     email: user.email!,
     full_name: user.user_metadata?.full_name ?? null,
-  }, { onConflict: "id", ignoreDuplicates: true });
+    plan: DEFAULT_PLAN,
+  }, { onConflict: "id" });
+  if (upsertProfileError) console.error("Profile upsert error:", upsertProfileError);
 
   // If returning from Stripe, verify payment and upgrade plan immediately
   if (upgradeSuccess) {
@@ -31,13 +34,17 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       const svc = await createServiceClient();
 
       // 1. Check DB for a pending payment record
-      const { data: payment } = await svc
+      const { data: payment, error: paymentFetchError } = await svc
         .from("payments")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(1)
         .single();
+      if (paymentFetchError && paymentFetchError.code !== "PGRST116") {
+        // PGRST116 = no rows found, which is expected for new users
+        console.error("Payment fetch error:", paymentFetchError);
+      }
 
       let verified = false;
 
@@ -47,7 +54,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         } else if (payment.stripe_session_id) {
           const session = await stripe.checkout.sessions.retrieve(payment.stripe_session_id);
           if (session.payment_status === "paid") {
-            await svc.from("payments").update({ status: "paid" }).eq("id", payment.id);
+            const { error: paymentUpdateError } = await svc.from("payments").update({ status: "paid" }).eq("id", payment.id);
+            if (paymentUpdateError) console.error("Payment update error:", paymentUpdateError);
             verified = true;
           }
         }
@@ -55,29 +63,32 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
       // 2. Fallback: search Stripe directly by customer ID
       if (!verified) {
-        const { data: profile } = await svc.from("profiles").select("stripe_customer_id").eq("id", user.id).single();
+        const { data: profile, error: profileFetchError } = await svc.from("profiles").select("stripe_customer_id").eq("id", user.id).single();
+        if (profileFetchError) console.error("Profile fetch error:", profileFetchError);
         if (profile?.stripe_customer_id) {
           const sessions = await stripe.checkout.sessions.list({
             customer: profile.stripe_customer_id,
-            limit: 5,
+            limit: STRIPE_SESSION_FETCH_LIMIT,
           });
           const paid = sessions.data.find(s => s.payment_status === "paid");
           if (paid) {
             // Record the payment and upgrade
-            await svc.from("payments").upsert({
+            const { error: paymentUpsertError } = await svc.from("payments").upsert({
               user_id: user.id,
               stripe_session_id: paid.id,
               amount: paid.amount_total ?? 0,
               plan: (paid.metadata?.plan_id as string) ?? "pro_lifetime",
               status: "paid",
-            }, { onConflict: "stripe_session_id", ignoreDuplicates: true });
+            }, { onConflict: "stripe_session_id" });
+            if (paymentUpsertError) console.error("Payment upsert error:", paymentUpsertError);
             verified = true;
           }
         }
       }
 
       if (verified) {
-        await svc.from("profiles").update({ plan: "pro", exports_limit: 999 }).eq("id", user.id);
+        const { error: planUpgradeError } = await svc.from("profiles").update({ plan: "pro", exports_limit: PRO_EXPORT_LIMIT }).eq("id", user.id);
+        if (planUpgradeError) console.error("Plan upgrade error:", planUpgradeError);
       }
     } catch (e) {
       console.error("Payment verification error:", e);
@@ -85,11 +96,18 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   }
 
   const svcFinal = await createServiceClient();
-  const [{ data: profile }, { data: proposals }, { data: allProposalsForChart }] = await Promise.all([
+  const [
+    { data: profile, error: profileError },
+    { data: proposals, error: proposalsError },
+    { data: allProposalsForChart, error: chartError },
+  ] = await Promise.all([
     svcFinal.from("profiles").select("*").eq("id", user.id).single(),
     svcFinal.from("proposals").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }),
     svcFinal.from("proposals").select("template_id"),
   ]);
+  if (profileError) console.error("Profile load error:", profileError);
+  if (proposalsError) console.error("Proposals load error:", proposalsError);
+  if (chartError) console.error("Chart data load error:", chartError);
 
   const templateCounts = (allProposalsForChart ?? []).reduce<Record<string, number>>((acc, p) => {
     acc[p.template_id] = (acc[p.template_id] ?? 0) + 1;
@@ -146,7 +164,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center gap-2 mb-1">
-              <div className="text-3xl font-bold text-gray-900 dark:text-gray-50">{profile?.plan === "pro" ? "∞" : `${profile?.exports_used ?? 0}/${profile?.exports_limit ?? 3}`}</div>
+              <div className="text-3xl font-bold text-gray-900 dark:text-gray-50">{profile?.plan === "pro" ? "∞" : `${profile?.exports_used ?? 0}/${profile?.exports_limit ?? FREE_EXPORT_LIMIT}`}</div>
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Exports used</div>
           </div>
