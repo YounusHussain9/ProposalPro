@@ -14,13 +14,13 @@
           {
             "type": "command",
             "if": "Bash(git commit*)",
-            "command": "npm run lint 2>&1 | head -40",
+            "command": "npx eslint src/ --ext .ts,.tsx 2>&1 | head -40",
             "statusMessage": "Linting before commit..."
           },
           {
             "type": "command",
             "if": "Bash(git push*)",
-            "command": "npm run lint 2>&1 | head -80",
+            "command": "npx eslint src/ --ext .ts,.tsx 2>&1 | head -80",
             "statusMessage": "Linting before push..."
           }
         ]
